@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
+const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
+outputChannel.appendLine("load tst console msg");
+outputChannel.show();
 export function activate(context: vscode.ExtensionContext) {
 
 	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
