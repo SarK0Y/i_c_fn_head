@@ -14,13 +14,44 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "languages": [{
+        "id": "C",
+        "extensions": [".c"],
+        "aliases": ["C"]
+    },
+    {
+        "id": "D",
+        "extensions": [".d"],
+        "aliases": ["D"]
+    },
+    {
+        "id": "Rust",
+        "extensions": [".rs"],
+        "aliases": ["Rust"]
+    },
+    {
+        "id": "CPP",
+        "extensions": [".cpp"],
+        "aliases": ["C++"]
+    }
+    ],
     "commands": [
       {
         "command": "i-c-fn-head.helloWorld",
         "title": "Hello World"
-      }
+      },
+      {
+        "command": "i-c-i_c_fn_head.showDocumentSymbols",
+        "title": "tst Document Symbols"
+    }
     ]
   },
+  "views": {
+        "explorer": [{
+            "id": "documentSymbolsView",
+            "name": "Document Symbols"
+        }]
+    }
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
