@@ -2,6 +2,7 @@
   "name": "i-c-fn-head",
   "displayName": "i_c_fn_head",
   "description": "no desc",
+  "publisher": "SarK0Y",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.105.0"
@@ -51,7 +52,7 @@
             "id": "documentSymbolsView",
             "name": "Document Symbols"
         }]
-    }
+    },
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
