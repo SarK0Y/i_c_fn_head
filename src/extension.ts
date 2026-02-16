@@ -12,7 +12,7 @@ function handleChangeSel(event) {
 	}
 	var scroll = vscode.workspace.getConfiguration("editorScroll");
 	console.log(event);
-	var doc: vscode.TextDocument = vscode.workspace.textDocuments[0].;
+	var doc: vscode.TextDocument = vscode.workspace.textDocuments[0];
 	let msg = "status bar: " + doc.getText();
 	console.log(msg);
 }
@@ -41,28 +41,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(disposable0);
 	context.subscriptions.push(
-		vscode.languages.registerDocumentSymbolProvider({ language: 'Rust' }, new showDocumentSymbols())
+		vscode.languages.registerDocumentSymbolProvider({ language: 'Rust' }, new ShowDocumentSymbols())
 	);
 	vscode.window.onDidChangeTextEditorSelection(handleChangeSel);
 	vscode.workspace.onDidChangeTextDocument(handleChangeState);
-	const disposable1 = vscode.commands.registerCommand('extension.getCursorPosition', () => {
+/*	const disposable1 = vscode.commands.registerCommand('extension.getCursorPosition', () => {
 		const editor = vscode.window.activeTextEditor;
 
-		if (editor) {
+/*		if (editor) {
 			const cursorPosition = editor.selection.active; // Get the active cursor position
 			console.log('Cursor Position:', cursorPosition); // Log the position
 			vscode.window.showInformationMessage(`Cursor Position: Line ${cursorPosition.line + 1}, Character ${cursorPosition.character + 1}`);
 		} else {
 			vscode.window.showInformationMessage('No active editor found.');
-		}
-	});
+		} 
+	}); 
 
-	context.subscriptions.push(disposable1);
+	context.subscriptions.push(disposable1); */
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
-class showDocumentSymbols implements vscode.DocumentSymbolProvider {
+class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 	provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
 		const symbols: vscode.SymbolInformation[] = [];
 
@@ -78,7 +78,7 @@ class showDocumentSymbols implements vscode.DocumentSymbolProvider {
 		while ((match = functionPattern.exec(text)) !== null) {
 			const functionName = match[1];
 			const position = document.positionAt(match.index);
-			symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, new vscode.Location(document.uri, position)));
+			symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 		}
 
 		// Extract classes
@@ -92,7 +92,7 @@ class showDocumentSymbols implements vscode.DocumentSymbolProvider {
 		while ((match = variablePattern.exec(text)) !== null) {
 			const variableName = match[1] || match[2] || match[3];
 			const position = document.positionAt(match.index);
-			symbols.push(new vscode.SymbolInformation(variableName, vscode.SymbolKind.Variable, new vscode.Location(document.uri, position)));
+			symbols.push(new vscode.SymbolInformation(variableName, vscode.SymbolKind.Variable, '', new vscode.Location(document.uri, position)));
 		}
 
 		return symbols;
