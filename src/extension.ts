@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { AccessibilityInformation as wa } from 'vscode';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-function handleChangeSel(event) {
+function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
 	console.log("Change in the text editor");
 	for (var i = 0; i < event.selections.length; i++) {
 		var selection = event.selections[i];
@@ -14,14 +14,6 @@ function handleChangeSel(event) {
 	console.log(event);
 	var doc: vscode.TextDocument = vscode.workspace.textDocuments[0];
 	let msg = "status bar: " + doc.getText();
-	console.log(msg);
-}
-function handleChangeState(event) {
-	//console.log(event);
-//	console.log(event.document);
-//	var doc: vscode.TextDocument = vscode.TextEditor;
-	let msg = "status bar: " + event.document.getText() + "lineat(0) " + event.document.lineAt(0).text +
-	event.document.bread;
 	console.log(msg);
 }
 export function activate(context: vscode.ExtensionContext) {
@@ -44,7 +36,6 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.languages.registerDocumentSymbolProvider({ language: 'Rust' }, new ShowDocumentSymbols())
 	);
 	vscode.window.onDidChangeTextEditorSelection(handleChangeSel);
-	vscode.workspace.onDidChangeTextDocument(handleChangeState);
 /*	const disposable1 = vscode.commands.registerCommand('extension.getCursorPosition', () => {
 		const editor = vscode.window.activeTextEditor;
 
