@@ -42,7 +42,7 @@
         "title": "Hello World"
       },
       {
-        "command": "i-c-i_c_fn_head.showDocumentSymbols",
+        "command": "i-c-i_c_fn_head.ShowDocumentSymbols",
         "title": "tst Document Symbols"
     }
     ]

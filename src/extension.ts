@@ -56,21 +56,26 @@ export function deactivate() { }
 class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 	provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
 		const symbols: vscode.SymbolInformation[] = [];
-
-		const text = document.getText();
+		const text0 = document.getText();
+		const text = text0.split ("\n");
 
 		// Regular expression patterns for different symbols
-		const functionPattern = /function\s+([a-zA-Z_$][0-9a-zA-Z_$]*)\s*\(/g;
+		const functionPattern = /\).*\{/g;
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 
 		// Extract functions
 		let match;
-		while ((match = functionPattern.exec(text)) !== null) {
-			const functionName = match[1];
-			const position = document.positionAt(match.index);
-			symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
-		}
+		console.log("start");
+		console.log(text);
+/*		text.forEach(function (strn: string) {
+			console.log(strn);
+			if ((match = functionPattern.exec(strn)) !== null) {
+				const functionName = match[1];
+				const position = document.positionAt(match.index);
+				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
+			}
+	});
 
 		// Extract classes
 	/*	while ((match = classPattern.exec(text)) !== null) {
@@ -80,11 +85,11 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		}*/
 
 		// Extract variables
-		while ((match = variablePattern.exec(text)) !== null) {
+		while ((match = variablePattern.exec(text0)) !== null) {
 			const variableName = match[1] || match[2] || match[3];
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(variableName, vscode.SymbolKind.Variable, '', new vscode.Location(document.uri, position)));
-		}
+		} 
 
 		return symbols;
 	}
