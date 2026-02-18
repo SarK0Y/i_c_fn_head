@@ -60,7 +60,7 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		const text = text0.split ("\n");
 
 		// Regular expression patterns for different symbols
-		const functionPattern = /\).*\{/g;
+		const functionPattern = /(.*\).*\{)/g;
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 
@@ -68,6 +68,11 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let match;
 		console.log("start");
 		console.log(text);
+		while ((match = functionPattern.exec(text0)) !== null) {
+			const fnName = match[1];
+			const position = document.positionAt(match.index);
+			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
+		} 
 /*		text.forEach(function (strn: string) {
 			console.log(strn);
 			if ((match = functionPattern.exec(strn)) !== null) {
