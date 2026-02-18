@@ -65,20 +65,38 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 
 		// Extract functions
-		let match;
+		let match: RegExpExecArray | null = null;
 		console.log("start");
 		console.log(text);
-		while ((match = functionPattern.exec(text0)) !== null) {
+/*		while ((match = functionPattern.exec(text0)) !== null) {
 			const fnName = match[1];
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
-		} 
-/*		text.forEach(function (strn: string) {
+		} */ 
+		let _match;
+		let functionName: string = "";
+		let _1st: boolean = true;
+		text.forEach(function (strn: string) {
 			console.log(strn);
+			let pos: vscode.Position = new vscode.Position(0, 0);
+			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
 			if ((match = functionPattern.exec(strn)) !== null) {
-				const functionName = match[1];
+				functionName = match[1];
+				_match = match[1];
 				const position = document.positionAt(match.index);
+				pos = position;
+				outputChannel.appendLine(pos.line.toString() );
+				outputChannel.appendLine(strn);
+				outputChannel.show();
+				_1st = false;
 				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
+			} else {
+				if (!_1st) {
+					pos = new vscode.Position(pos.line + 1, pos.character);
+					symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, pos)));
+				}
+				//outputChannel.appendLine( pos );
+				//outputChannel.show();				
 			}
 	});
 
