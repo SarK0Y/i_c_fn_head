@@ -78,29 +78,31 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let _match;
 		let functionName: string = "";
 		let _1st: boolean = true;
+		let line: number = 0;
 		text.forEach(function (strn: string) {
-		//	console.log(strn);
+			//	console.log(strn);
 			let pos: vscode.Position = new vscode.Position(0, 0);
 			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-			if ((match = functionPattern[1].exec(strn)) !== null) {
+			//if ((match = functionPattern[1].exec(strn)) !== null) {
+			if (select_lang_n_tst_fn_head(strn))
 				functionName = match[1];
-				_match = match[1];
-				const position = document.positionAt(match.index);
-				pos = position;
-				_1st = false;
-				outputChannel.appendLine(functionName);
-				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
-				outputChannel.appendLine(pos.line.toString() );
-				outputChannel.appendLine(strn);
-				outputChannel.show();
-			} else {
-				if (!_1st) {
-					pos = new vscode.Position(pos.line + 1, pos.character);
-					symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, pos)));
-				}
+			_match = match[1];
+			const position = document.positionAt(match.index);
+			pos = position;
+			_1st = false;
+			outputChannel.appendLine(functionName);
+			symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
+			outputChannel.appendLine(pos.line.toString());
+			outputChannel.appendLine(strn);
+			outputChannel.show();
+		} else {
+			if(!_1st) {
+				pos = new vscode.Position(pos.line + 1, pos.character);
+				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, pos)));
+			}
 				//outputChannel.appendLine( pos );
 				//outputChannel.show();				
-			}
+		} line++;
 	});
 
 		// Extract classes
@@ -120,9 +122,20 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		return symbols;
 	}
 }
+export function select_lang_n_tst_fn_head(head: string): boolean {
+	const langId = vscode.window.activeTextEditor?.document.languageId;
+	const msg = "Active lang: " + langId?.toString();
+	prnt(msg);
+	return false
+}
 export function c_cpp_d_head(head: string): boolean {
 	const regex: RegExp = /^\s*(\w[\w\s:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/;
 	return regex.test(head);
+}
+export function prnt(msg: string) {
+	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
+	outputChannel.appendLine(msg);
+	outputChannel.show();
 }
 //fn
 /*
