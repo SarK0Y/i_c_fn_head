@@ -120,7 +120,10 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		return symbols;
 	}
 }
-
+export function cpp_head(head: string): boolean {
+	const regex: RegExp = /^\s*(\w[\w\s:\*&]*\s+)?(\w+)\s*\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/;
+	return regex.test(head);
+}
 //fn
 /*
 class MyDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
