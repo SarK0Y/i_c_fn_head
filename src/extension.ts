@@ -18,9 +18,6 @@ function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
 }
 export function activate(context: vscode.ExtensionContext) {
 
-	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-	outputChannel.appendLine("tst console msg");
-	outputChannel.show();
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
@@ -81,10 +78,12 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let line: number = 0;
 		text.forEach(function (strn: string) {
 			//	console.log(strn);
+			const langId = vscode.window.activeTextEditor?.document.languageId;
+			const msg = "Active lang: " + langId?.toString();
+			prnt(msg);
 			let pos: vscode.Position = new vscode.Position(0, 0);
 			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-			//if ((match = functionPattern[1].exec(strn)) !== null) {
-			if (select_lang_n_tst_fn_head(strn))
+			if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
 				functionName = match[1];
 			_match = match[1];
 			const position = document.positionAt(match.index);
@@ -122,11 +121,11 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		return symbols;
 	}
 }
-export function select_lang_n_tst_fn_head(head: string): boolean {
+export function select_lang_n_tst_fn_head(head: string): RegExpExecArray | null {
 	const langId = vscode.window.activeTextEditor?.document.languageId;
 	const msg = "Active lang: " + langId?.toString();
 	prnt(msg);
-	return false
+	return null
 }
 export function c_cpp_d_head(head: string): boolean {
 	const regex: RegExp = /^\s*(\w[\w\s:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/;
