@@ -57,17 +57,19 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 	provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
 		const symbols: vscode.SymbolInformation[] = [];
 		const text0 = document.getText();
-		const text = text0.split ("\n");
+		const text = text0.split("\n");
 
 		// Regular expression patterns for different symbols
-		const functionPattern = /(.*\).*\{)/g;
+		const functionPattern: RegExp[] = [
+			/(^(\s*if))/g,
+		];
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 
 		// Extract functions
 		let match: RegExpExecArray | null = null;
-		console.log("start");
-		console.log(text);
+		//console.log("start");
+		//console.log(text);
 /*		while ((match = functionPattern.exec(text0)) !== null) {
 			const fnName = match[1];
 			const position = document.positionAt(match.index);
@@ -77,19 +79,20 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let functionName: string = "";
 		let _1st: boolean = true;
 		text.forEach(function (strn: string) {
-			console.log(strn);
+		//	console.log(strn);
 			let pos: vscode.Position = new vscode.Position(0, 0);
 			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-			if ((match = functionPattern.exec(strn)) !== null) {
+			if ((match = functionPattern[1].exec(strn)) !== null) {
 				functionName = match[1];
 				_match = match[1];
 				const position = document.positionAt(match.index);
 				pos = position;
+				_1st = false;
+				outputChannel.appendLine(functionName);
+				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 				outputChannel.appendLine(pos.line.toString() );
 				outputChannel.appendLine(strn);
 				outputChannel.show();
-				_1st = false;
-				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 			} else {
 				if (!_1st) {
 					pos = new vscode.Position(pos.line + 1, pos.character);
@@ -108,11 +111,11 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		}*/
 
 		// Extract variables
-		while ((match = variablePattern.exec(text0)) !== null) {
+	/*	while ((match = variablePattern.exec(text0)) !== null) {
 			const variableName = match[1] || match[2] || match[3];
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(variableName, vscode.SymbolKind.Variable, '', new vscode.Location(document.uri, position)));
-		} 
+		} */
 
 		return symbols;
 	}
