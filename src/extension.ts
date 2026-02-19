@@ -124,12 +124,17 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 export function select_lang_n_tst_fn_head(head: string): RegExpExecArray | null {
 	const langId = vscode.window.activeTextEditor?.document.languageId;
 	const msg = "Active lang: " + langId?.toString();
+	switch (langId) {
+		case "c": { return c_cpp_d_head(head) }
+		case "cpp": { return c_cpp_d_head(head) }
+		case "d": { return c_cpp_d_head(head) }
+	}
 	prnt(msg);
 	return null
 }
-export function c_cpp_d_head(head: string): boolean {
+export function c_cpp_d_head(head: string): RegExpExecArray | null {
 	const regex: RegExp = /^\s*(\w[\w\s:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/;
-	return regex.test(head);
+	return regex.exec(head);
 }
 export function prnt(msg: string) {
 	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
