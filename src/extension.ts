@@ -76,21 +76,25 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let functionName: string = "";
 		let _1st: boolean = true;
 		let line: number = 0;
+		let pos: vscode.Range | undefined = new vscode.Range(0, 0, 0, 100);
+		let point: vscode.Position = new vscode.Position(0, 0);
+		let set_rng: vscode.Range;
+		let default_range = new vscode.Range(0, 0, 0, 100);
 		text.forEach(function (strn: string) {
 			//	console.log(strn);
-			let pos: vscode.Position = new vscode.Position(0, 0);
 			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
 			if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
 				functionName = strn;
-			_match = match[1];
-			const position = document.positionAt(match.index);
-			pos = position;
-			_1st = false;
-			symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
+				_match = match[1];
+				const position: vscode.Range | undefined = document.getWordRangeAtPosition( point );
+				pos = position;
+				_1st = false;
+				set_rng = position ?? default_range;
+				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, set_rng)));
 		} else {
 			if(!_1st) {
-				pos = new vscode.Position(line, pos.character);
-				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, pos)));
+				set_rng = new vscode.Range(line, 0, line, 300);
+				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, set_rng)));
 			}
 				//outputChannel.appendLine( pos );
 				//outputChannel.show();				
