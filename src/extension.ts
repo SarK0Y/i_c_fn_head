@@ -81,24 +81,14 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let set_rng: vscode.Range;
 		let default_range = new vscode.Range(0, 0, 0, 100);
 		text.forEach(function (strn: string) {
-			//	console.log(strn);
-			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
 			if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
 				functionName = strn;
-				_match = match[1];
+				point = new vscode.Position(line, 0);
 				const position: vscode.Range | undefined = document.getWordRangeAtPosition( point );
 				pos = position;
-				_1st = false;
 				set_rng = position ?? default_range;
 				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, set_rng)));
-		} else {
-			if(!_1st) {
-				set_rng = new vscode.Range(line, 0, line, 300);
-				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, set_rng)));
-			}
-				//outputChannel.appendLine( pos );
-				//outputChannel.show();				
-		} line++;
+			} line++;
 	});
 
 		// Extract classes
@@ -107,13 +97,24 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(className, vscode.SymbolKind.Class, new vscode.Location(document.uri, position)));
 		}*/
+		line = 0;
+		_1st = true;
+	text.forEach(function (strn: string) {
+		//	console.log(strn);
+		const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
+		if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
+			functionName = strn;
+			_1st = false;
+		} else {
+			if (!_1st) {
+				set_rng = new vscode.Range(line, 0, line, 300);
+				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Variable, '', new vscode.Location(document.uri, set_rng)));
+			}
+			//outputChannel.appendLine( pos );
+			//outputChannel.show();				
+		} line++;
+		});
 
-		// Extract variables
-	/*	while ((match = variablePattern.exec(text0)) !== null) {
-			const variableName = match[1] || match[2] || match[3];
-			const position = document.positionAt(match.index);
-			symbols.push(new vscode.SymbolInformation(variableName, vscode.SymbolKind.Variable, '', new vscode.Location(document.uri, position)));
-		} */
 
 		return symbols;
 	}
@@ -135,7 +136,7 @@ export function c_cpp_d_head(head: string): RegExpExecArray | null {
 	return regex.exec(head);
 }
 export function rust_head(head: string): RegExpExecArray | null {
-	const regex: RegExp = /(^\s*(pub|private|crate|super|self)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/
+	const regex: RegExp = /(^\s*(.*)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/
 	return regex.exec(head);
 }
 export function prnt(msg: string) {
