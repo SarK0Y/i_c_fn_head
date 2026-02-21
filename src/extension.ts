@@ -78,25 +78,18 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let line: number = 0;
 		text.forEach(function (strn: string) {
 			//	console.log(strn);
-			const langId = vscode.window.activeTextEditor?.document.languageId;
-			const msg = "Active lang: " + langId?.toString();
-			prnt(msg);
 			let pos: vscode.Position = new vscode.Position(0, 0);
 			const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
 			if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
-				functionName = match[1];
+				functionName = strn;
 			_match = match[1];
 			const position = document.positionAt(match.index);
 			pos = position;
 			_1st = false;
-			outputChannel.appendLine(functionName);
 			symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
-			outputChannel.appendLine(pos.line.toString());
-			outputChannel.appendLine(strn);
-			outputChannel.show();
 		} else {
 			if(!_1st) {
-				pos = new vscode.Position(pos.line + 1, pos.character);
+				pos = new vscode.Position(line, pos.character);
 				symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, pos)));
 			}
 				//outputChannel.appendLine( pos );
@@ -124,16 +117,21 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 export function select_lang_n_tst_fn_head(head: string): RegExpExecArray | null {
 	const langId = vscode.window.activeTextEditor?.document.languageId;
 	const msg = "Active lang: " + langId?.toString();
-	switch (langId) {
+	switch (langId?.toLowerCase() ) {
 		case "c": { return c_cpp_d_head(head) }
 		case "cpp": { return c_cpp_d_head(head) }
 		case "d": { return c_cpp_d_head(head) }
+		case "rust": { return rust_head(head) }
 	}
-	prnt(msg);
+//	prnt(msg);
 	return null
 }
 export function c_cpp_d_head(head: string): RegExpExecArray | null {
 	const regex: RegExp = /^\s*(\w[\w\s:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/;
+	return regex.exec(head);
+}
+export function rust_head(head: string): RegExpExecArray | null {
+	const regex: RegExp = /(^\s*(pub|private|crate|super|self)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/
 	return regex.exec(head);
 }
 export function prnt(msg: string) {
