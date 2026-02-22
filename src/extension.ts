@@ -71,9 +71,10 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		];
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
-
+		let wrong_ending = /;(\s)?$/
+		const func_ret = /^\s*return\s/;
 		// Extract functions
-		let match: RegExpExecArray | null = null;
+		let match: RegExpExecArray | null | undefined = null;
 		//console.log("start");
 		//console.log(text);
 		let _match;
@@ -89,9 +90,10 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 		}*/ 
-
+		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
-			if ((match = select_lang_n_tst_fn_head(text0)) !== null) {
+			let wrong_line: boolean = wrong_ending.test(strn) || func_ret.test(strn);
+			if (regex !== null && !wrong_line && (match = regex.exec(text0)) !== null) {
 				functionName = strn;
 				point = new vscode.Position(line, 0);
 				const position: vscode.Range | undefined = document.getWordRangeAtPosition( point );
@@ -129,25 +131,25 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		return symbols;
 	}
 }
-export function select_lang_n_tst_fn_head(head: string): RegExpExecArray | null {
+export function select_lang_n_tst_fn_head(): RegExp | null { //RegExpExecArray | null {
 	const langId = vscode.window.activeTextEditor?.document.languageId;
 	const msg = "Active lang: " + langId?.toString();
 	switch (langId?.toLowerCase() ) {
-		case "c": { return c_cpp_d_head(head) }
-		case "cpp": { return c_cpp_d_head(head) }
-		case "d": { return c_cpp_d_head(head) }
-		case "rust": { return rust_head(head) }
+		case "c": { return c_cpp_d_head() }
+		case "cpp": { return c_cpp_d_head() }
+		case "d": { return c_cpp_d_head() }
+		case "rust": { return rust_head() }
 	}
 //	prnt(msg);
 	return null
 }
-export function c_cpp_d_head(head: string): RegExpExecArray | null {
-	const regex: RegExp = /^\s*(?:[\w\s\_\:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/gm;
-	return regex.exec(head);
+export function c_cpp_d_head(): RegExp {
+	const regex: RegExp = /^\s*(?:[\w\s\_\:\*&]*\s+)(\w+)\s*(\(\w\))?\(([^)]*)\)\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?(?!;)$/gm;
+	return regex
 }
-export function rust_head(head: string): RegExpExecArray | null {
+export function rust_head(): RegExp {
 	const regex: RegExp = /(^\s*(.*)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/m
-	return regex.exec(head);
+	return regex;
 }
 export function prnt(msg: string) {
 	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
