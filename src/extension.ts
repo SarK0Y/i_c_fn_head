@@ -32,6 +32,15 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerDocumentSymbolProvider({ language: 'Rust' }, new ShowDocumentSymbols())
 	);
+	context.subscriptions.push(
+		vscode.languages.registerDocumentSymbolProvider({ language: 'D' }, new ShowDocumentSymbols())
+	);
+	context.subscriptions.push(
+		vscode.languages.registerDocumentSymbolProvider({ language: 'C' }, new ShowDocumentSymbols())
+	);
+	context.subscriptions.push(
+		vscode.languages.registerDocumentSymbolProvider({ language: 'CPP' }, new ShowDocumentSymbols())
+	);
 	vscode.window.onDidChangeTextEditorSelection(handleChangeSel);
 /*	const disposable1 = vscode.commands.registerCommand('extension.getCursorPosition', () => {
 		const editor = vscode.window.activeTextEditor;
@@ -67,11 +76,6 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let match: RegExpExecArray | null = null;
 		//console.log("start");
 		//console.log(text);
-/*		while ((match = functionPattern.exec(text0)) !== null) {
-			const fnName = match[1];
-			const position = document.positionAt(match.index);
-			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
-		} */ 
 		let _match;
 		let functionName: string = "";
 		let _1st: boolean = true;
@@ -80,8 +84,14 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let point: vscode.Position = new vscode.Position(0, 0);
 		let set_rng: vscode.Range;
 		let default_range = new vscode.Range(0, 0, 0, 100);
+	/*	while ((match = select_lang_n_tst_fn_head (text0) ) !== null) {
+			const fnName = match[1];
+			const position = document.positionAt(match.index);
+			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
+		}*/ 
+
 		text.forEach(function (strn: string) {
-			if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
+			if ((match = select_lang_n_tst_fn_head(text0)) !== null) {
 				functionName = strn;
 				point = new vscode.Position(line, 0);
 				const position: vscode.Range | undefined = document.getWordRangeAtPosition( point );
@@ -99,7 +109,7 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		}*/
 		line = 0;
 		_1st = true;
-	text.forEach(function (strn: string) {
+/*	text.forEach(function (strn: string) {
 		//	console.log(strn);
 		const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
 		if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
@@ -113,7 +123,7 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			//outputChannel.appendLine( pos );
 			//outputChannel.show();				
 		} line++;
-		});
+		});*/
 
 
 		return symbols;
@@ -132,11 +142,11 @@ export function select_lang_n_tst_fn_head(head: string): RegExpExecArray | null 
 	return null
 }
 export function c_cpp_d_head(head: string): RegExpExecArray | null {
-	const regex: RegExp = /^\s*(\w[\w\s:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/;
+	const regex: RegExp = /^\s*(?:[\w\s\_\:\*&]*\s+)?(\w+)\s*(\(\w\))?\(([^)]*)\)\s*(const)?\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/gm;
 	return regex.exec(head);
 }
 export function rust_head(head: string): RegExpExecArray | null {
-	const regex: RegExp = /(^\s*(.*)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/
+	const regex: RegExp = /(^\s*(.*)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/m
 	return regex.exec(head);
 }
 export function prnt(msg: string) {
