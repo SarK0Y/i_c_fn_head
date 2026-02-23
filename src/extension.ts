@@ -62,7 +62,7 @@ export function deactivate() { }
 class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 	provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
 		const symbols: vscode.SymbolInformation[] = [];
-		const text0 = document.getText();
+		let text0 = document.getText();
 		const text = text0.split("\n");
 
 		// Regular expression patterns for different symbols
@@ -71,8 +71,12 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		];
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
-		let wrong_ending = /;(\s)?$/
-		const func_ret = /^\s*return\s/;
+		let wrong_ending = /;[\s]*$/
+		const func_ret = /[\s]*return/;
+		const while_op = /[\s]*while[\s]*\(/;
+		const for_op = /[\s]*for[\s]*\(/;
+		const switch_op = /[\s]*switch[\s]*\(/;
+		const if_op = /[\n]*[\s]*if[\s]*/;
 		// Extract functions
 		let match: RegExpExecArray | null | undefined = null;
 		//console.log("start");
@@ -92,9 +96,14 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		}*/ 
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
-			let wrong_line: boolean = wrong_ending.test(strn) || func_ret.test(strn);
-			if (regex !== null && !wrong_line && (match = regex.exec(text0)) !== null) {
-				functionName = strn;
+			text0 = rebuild_doc(line, text);
+			match = regex?.exec(text0);
+			let _1st_line_of_match: string = match?.[0].split(/\s+/)[0] ?? "";
+			let wrong_line: boolean = wrong_ending.test(_1st_line_of_match) || func_ret.test(_1st_line_of_match) ||
+				while_op.test(_1st_line_of_match) || if_op.test(_1st_line_of_match) ||
+				for_op.test (_1st_line_of_match) || switch_op.test (_1st_line_of_match);
+			if (!wrong_line && match !== null && match !== undefined) {
+				functionName = _1st_line_of_match + match[0];
 				point = new vscode.Position(line, 0);
 				const position: vscode.Range | undefined = document.getWordRangeAtPosition( point );
 				pos = position;
@@ -144,7 +153,7 @@ export function select_lang_n_tst_fn_head(): RegExp | null { //RegExpExecArray |
 	return null
 }
 export function c_cpp_d_head(): RegExp {
-	const regex: RegExp = /^\s*(?:[\w\s\_\:\*&]*\s+)(\w+)\s*(\(\w\))?\(([^)]*)\)\s*\{?([0-9a-zA-Z\n\s\"\"]*\})?(?!;)$/gm;
+	const regex: RegExp = /^\s*([\w\s\_\:\*&]*\s+)(\w+)\s*(\(\w\))?\(([^)]*)\).*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/gm;
 	return regex
 }
 export function rust_head(): RegExp {
@@ -156,6 +165,14 @@ export function prnt(msg: string) {
 	outputChannel.appendLine(msg);
 	outputChannel.show();
 }
+export function rebuild_doc(from: number, doc: string[]): string {
+	let ret: string = "";
+	for (let x = from; x < doc.length; x++) {
+		ret += doc[x];
+	}
+	return ret;
+}
+	
 //fn
 /*
 class MyDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
