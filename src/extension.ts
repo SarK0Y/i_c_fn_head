@@ -71,17 +71,19 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		];
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
-		let wrong_ending = /.*;[\s]*}?$/
+		let wrong_ending = /;[\s]*}?$/
 		const func_ret = /^return\s/;
 		const while_op = /[\s]*while[\s]*\(/;
 		const for_op = /\s*for[\s]*\(?/;
 		const switch_op = /[\s]*switch[\s]*\(?/;
-		const if_op = /[\s]*if[\s]*/;
+		const if_op = /^[\s]*if[\s]*\(/;
+		const scope_op_in_D = /^scope\s*\(/;
+		const bad_symbs = /[=+\-]/;
 		// Extract functions
 		let match: RegExpExecArray | null | undefined = null;
 		//console.log("start");
 		//console.log(text);
-		let _match;
+		let yes_D = vscode.window.activeTextEditor?.document.languageId.toLowerCase() === "d";
 		let functionName: string = "";
 		let _1st: boolean = true;
 		let line: number = 0;
@@ -97,12 +99,14 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
 			let strn0 = strn.trim();
+			//let _bad_symbs = bad_symbs.test(strn0) || strn0.charAt(strn.length - 1) === ";";
 			//text0 = rebuild_doc(line, text);
 			match = regex?.exec(strn0);
 			let _1st_line_of_match: string = strn0; //match?.[0].split(/\s+/)[0] ?? "";
 			let wrong_line: boolean = wrong_ending.test(_1st_line_of_match) || func_ret.test(_1st_line_of_match) ||
 				while_op.test(_1st_line_of_match) || if_op.test(_1st_line_of_match) ||
-				for_op.test (_1st_line_of_match) || switch_op.test (_1st_line_of_match);
+				for_op.test(_1st_line_of_match) || switch_op.test(_1st_line_of_match) ||
+				(scope_op_in_D.test (_1st_line_of_match) && yes_D);
 			if (!wrong_line && match !== null && match !== undefined) {
 				functionName = strn0;
 				point = new vscode.Position(line, 0);
@@ -125,12 +129,17 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		//	console.log(strn);
 		const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
 		let strn0 = strn.trim();
+		//let _bad_symbs = bad_symbs.test(strn0) || strn0.charAt(strn.length - 1) === ";";
 		//text0 = rebuild_doc(line, text);
 		match = regex?.exec(strn0);
 		let _1st_line_of_match: string = strn0; //match?.[0].split(/\s+/)[0] ?? "";
-		let wrong_line: boolean = wrong_ending.test(_1st_line_of_match) || func_ret.test(_1st_line_of_match) ||
+		let wrong_line: boolean = strn0.charAt(strn.length - 1) === ";" || func_ret.test(_1st_line_of_match) ||
 			while_op.test(_1st_line_of_match) || if_op.test(_1st_line_of_match) ||
-			for_op.test(_1st_line_of_match) || switch_op.test(_1st_line_of_match);
+			for_op.test(_1st_line_of_match) || switch_op.test(_1st_line_of_match) ||
+			(scope_op_in_D.test(_1st_line_of_match) && yes_D);
+		if (strn0 === "ret_emp save_for_unitst (ret_emp* x) {") {
+			prnt(wrong_line.toString());
+		}
 		if (!wrong_line && match !== null && match !== undefined) {
 
 			functionName = strn0;
@@ -162,7 +171,7 @@ export function select_lang_n_tst_fn_head(): RegExp | null { //RegExpExecArray |
 	return null
 }
 export function c_cpp_d_head(): RegExp {
-	const regex: RegExp = /(^[\s]*.*[\n]*\()/gm;
+	const regex: RegExp = /^[^+\-=]*\(/;//gm;
 	return regex
 }
 export function rust_head(): RegExp {
@@ -180,6 +189,19 @@ export function rebuild_doc(from: number, doc: string[]): string {
 		ret += doc[x];
 	}
 	return ret;
+}
+export function c_fn_body(doc: string) {
+	let lines: string[] = doc.split("\n");
+	for (let i = 0; i < lines.length; i++) {
+		lines[i] = lines[i].trim();
+	}
+	const one_line_comment: RegExp = /^[/]{2}/;
+	const open_comment: RegExp = /^\/\*/;
+	const close_comment: RegExp = /^\*\//;
+	const open_block: RegExp = /^\{/;
+	const close_block: RegExp = /\}$/;
+	const tst_class: RegExp = /^class\s/; 
+	let get_in_class: boolean = false;
 }
 	
 //fn
