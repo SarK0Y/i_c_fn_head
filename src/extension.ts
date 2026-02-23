@@ -71,12 +71,12 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		];
 		const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 		const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
-		let wrong_ending = /;[\s]*$/
-		const func_ret = /[\s]*return/;
+		let wrong_ending = /.*;[\s]*}?$/
+		const func_ret = /^return\s/;
 		const while_op = /[\s]*while[\s]*\(/;
-		const for_op = /[\s]*for[\s]*\(/;
-		const switch_op = /[\s]*switch[\s]*\(/;
-		const if_op = /[\n]*[\s]*if[\s]*/;
+		const for_op = /\s*for[\s]*\(?/;
+		const switch_op = /[\s]*switch[\s]*\(?/;
+		const if_op = /[\s]*if[\s]*/;
 		// Extract functions
 		let match: RegExpExecArray | null | undefined = null;
 		//console.log("start");
@@ -96,14 +96,15 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		}*/ 
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
-			text0 = rebuild_doc(line, text);
-			match = regex?.exec(text0);
-			let _1st_line_of_match: string = match?.[0].split(/\s+/)[0] ?? "";
+			let strn0 = strn.trim();
+			//text0 = rebuild_doc(line, text);
+			match = regex?.exec(strn0);
+			let _1st_line_of_match: string = strn0; //match?.[0].split(/\s+/)[0] ?? "";
 			let wrong_line: boolean = wrong_ending.test(_1st_line_of_match) || func_ret.test(_1st_line_of_match) ||
 				while_op.test(_1st_line_of_match) || if_op.test(_1st_line_of_match) ||
 				for_op.test (_1st_line_of_match) || switch_op.test (_1st_line_of_match);
 			if (!wrong_line && match !== null && match !== undefined) {
-				functionName = _1st_line_of_match + match[0];
+				functionName = strn0;
 				point = new vscode.Position(line, 0);
 				const position: vscode.Range | undefined = document.getWordRangeAtPosition( point );
 				pos = position;
@@ -120,11 +121,19 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 		}*/
 		line = 0;
 		_1st = true;
-/*	text.forEach(function (strn: string) {
+	text.forEach(function (strn: string) {
 		//	console.log(strn);
 		const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-		if ((match = select_lang_n_tst_fn_head(strn)) !== null) {
-			functionName = strn;
+		let strn0 = strn.trim();
+		//text0 = rebuild_doc(line, text);
+		match = regex?.exec(strn0);
+		let _1st_line_of_match: string = strn0; //match?.[0].split(/\s+/)[0] ?? "";
+		let wrong_line: boolean = wrong_ending.test(_1st_line_of_match) || func_ret.test(_1st_line_of_match) ||
+			while_op.test(_1st_line_of_match) || if_op.test(_1st_line_of_match) ||
+			for_op.test(_1st_line_of_match) || switch_op.test(_1st_line_of_match);
+		if (!wrong_line && match !== null && match !== undefined) {
+
+			functionName = strn0;
 			_1st = false;
 		} else {
 			if (!_1st) {
@@ -134,7 +143,7 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			//outputChannel.appendLine( pos );
 			//outputChannel.show();				
 		} line++;
-		});*/
+		});
 
 
 		return symbols;
@@ -153,7 +162,7 @@ export function select_lang_n_tst_fn_head(): RegExp | null { //RegExpExecArray |
 	return null
 }
 export function c_cpp_d_head(): RegExp {
-	const regex: RegExp = /^\s*([\w\s\_\:\*&]*\s+)(\w+)\s*(\(\w\))?\(([^)]*)\).*\{?([0-9a-zA-Z\n\s\"\"]*\})?$/gm;
+	const regex: RegExp = /(^[\s]*.*[\n]*\()/gm;
 	return regex
 }
 export function rust_head(): RegExp {
