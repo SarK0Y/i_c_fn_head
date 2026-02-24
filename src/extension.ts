@@ -190,7 +190,7 @@ export function rebuild_doc(from: number, doc: string[]): string {
 	}
 	return ret;
 }
-export function c_fn_body(doc: string) {
+export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolInformation[]) {
 	let lines: string[] = doc.split("\n");
 	for (let i = 0; i < lines.length; i++) {
 		lines[i] = lines[i].trim();
@@ -206,6 +206,7 @@ export function c_fn_body(doc: string) {
 	let close_class: number | null = null;
 	let lnum: number = 0;
 	let block_state: number = 0;
+	let fn_head: string = "";
 	for (let i = 0; i < lines.length; i++) {
 		if (one_line_comment.test(lines[i])) {
 			continue;
@@ -217,13 +218,40 @@ export function c_fn_body(doc: string) {
 			}
 			continue;
 		}
-		if (start_class === null && block_state == 0) {
+		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
 				start_class = i;
 			}
 		}
+		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
+			close_class = i;
+			add_symb(
+				start_class,
+				close_class,
+				lines[start_class].replace("class", ""),
+				"Class",
+				uri,
+				symbols
+			);
+			continue;
+		}
 
 	}
+}
+export function add_symb(
+	startLine: number,
+	endLine: number,
+	objName: string,
+	objType: string,
+	uri: vscode.Uri,
+	symbols: & vscode.SymbolInformation[]) {
+	
+	let set_rng = new vscode.Range(startLine, 0, endLine, 0);
+	symbols.push(new vscode.SymbolInformation(
+		objName,
+		eval("vscode.SymbolKind." + objType),
+		'',
+		new vscode.Location(uri, set_rng)));
 }
 	
 //fn
