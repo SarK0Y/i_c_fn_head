@@ -197,11 +197,33 @@ export function c_fn_body(doc: string) {
 	}
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const open_comment: RegExp = /^\/\*/;
-	const close_comment: RegExp = /^\*\//;
+	const close_comment: RegExp = /\*\/$/;
 	const open_block: RegExp = /^\{/;
 	const close_block: RegExp = /\}$/;
 	const tst_class: RegExp = /^class\s/; 
-	let get_in_class: boolean = false;
+	let within_comment: boolean = false;
+	let start_class: number | null = null;
+	let close_class: number | null = null;
+	let lnum: number = 0;
+	let block_state: number = 0;
+	for (let i = 0; i < lines.length; i++) {
+		if (one_line_comment.test(lines[i])) {
+			continue;
+		}
+		within_comment = open_comment.test(lines[i]);
+		if (within_comment) {
+			if (close_comment.test(lines[i])) {
+				within_comment = false;
+			}
+			continue;
+		}
+		if (start_class === null && block_state == 0) {
+			if (tst_class.test(lines[i])) {
+				start_class = i;
+			}
+		}
+
+	}
 }
 	
 //fn
