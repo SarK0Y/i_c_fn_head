@@ -211,7 +211,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		if (one_line_comment.test(lines[i])) {
 			continue;
 		}
-		within_comment = open_comment.test(lines[i]);
+		if (!within_comment) { within_comment = open_comment.test(lines[i]); }
 		if (within_comment) {
 			if (close_comment.test(lines[i])) {
 				within_comment = false;
