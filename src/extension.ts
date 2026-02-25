@@ -203,7 +203,6 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	const tst_class: RegExp = /^class\s/; 
 	let within_comment: boolean = false;
 	let start_class: number | null = null;
-	let close_class: number | null = null;
 	let start_block: number | null = null;
 	let block_state: number = 0;
 	let fn_head: string = "";
@@ -224,15 +223,15 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 			}
 		}
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
-			close_class = i;
 			add_symb(
 				start_class,
-				close_class,
+				i,
 				lines[start_class].replace("class", ""),
 				"Class",
 				uri,
 				symbols
 			);
+			start_class = null;
 			continue;
 		}
 		block_state -= open_block.test(lines[i]) ? 1 : 0;
