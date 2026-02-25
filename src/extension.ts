@@ -198,8 +198,8 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const open_comment: RegExp = /^\/\*/;
 	const close_comment: RegExp = /\*\/$/;
-	const open_block: RegExp = /(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/\*)?$)/;
-	const close_block: RegExp = /(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/\*)?$)/;
+	const open_block: RegExp = /(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
+	const close_block: RegExp = /(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
 	const tst_class: RegExp = /^class\s/; 
 	let within_comment: boolean = false;
 	let start_class: number | null = null;
