@@ -256,7 +256,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		block_state -= open_block.test(lines[i]) ? 1 : 0;
 		block_state += close_block.test(lines[i]) ? 1 : 0;
 		if (start_block == null && block_state == -1) {
-			fn_head = get_c_fn_head(lines[i - 1], lines[i]);
+			fn_head = get_c_fn_head(lines, i);
 			start_block = i;
 		}
 		if (start_block != null && block_state == 0) {
@@ -272,9 +272,11 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		}
 	}
 }
-export function get_c_fn_head(prev_ln: string, cur_ln: string): string {
-	if (prev_ln.includes("(")) { return prev_ln; }
-	return cur_ln;
+export function get_c_fn_head(doc: string[], lnum: number): string {
+	for (let i = lnum; i > -1; i--) {
+		if (doc[i].includes("(")) { return doc[i]; }
+	}
+	return doc [0];
 }
 export function add_symb(
 	startLine: number,
