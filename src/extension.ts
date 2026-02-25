@@ -96,6 +96,7 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 		}*/ 
+		if (manage_output(text0, document.uri, symbols) != _manage_output.Rust) { return symbols; }
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
 			let strn0 = strn.trim();
@@ -168,6 +169,24 @@ export function select_lang_n_tst_fn_head(): RegExp | null { //RegExpExecArray |
 		case "rust": { return rust_head() }
 	}
 //	prnt(msg);
+	return null
+}
+enum _manage_output {
+	C,
+	D,
+	Rust,
+	CPP
+}
+export function manage_output(doc: string, uri: vscode.Uri, symbols: & vscode.SymbolInformation[]): _manage_output | RegExp | null {
+	const langId = vscode.window.activeTextEditor?.document.languageId;
+	const msg = "Active lang: " + langId?.toString();
+	switch (langId?.toLowerCase()) {
+		case "c": { c_fn_body(doc, uri, symbols);  return _manage_output.C  }
+		case "cpp": { c_fn_body(doc, uri, symbols); return _manage_output.CPP }
+		case "d": { c_fn_body(doc, uri, symbols); return _manage_output.D }
+		case "rust": { return rust_head() }
+	}
+	//	prnt(msg);
 	return null
 }
 export function c_cpp_d_head(): RegExp {
