@@ -220,7 +220,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	const close_comment: RegExp = /\*\/$/;
 	const open_block: RegExp = /(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	const close_block: RegExp = /(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	const tst_class: RegExp = /^class\s/; 
+	const tst_class: RegExp = /\sclass\s/; 
 	let within_comment: boolean = false;
 	let start_class: number | null = null;
 	let start_block: number | null = null;
