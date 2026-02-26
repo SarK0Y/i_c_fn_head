@@ -218,18 +218,19 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	const one_line_block: RegExp = /.*\{.*\}.*/;
 	const open_comment: RegExp = /^\/\*/;
 	const close_comment: RegExp = /\*\/$/;
-	const open_block: RegExp = /(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
-	const close_block: RegExp = /(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
+	const open_block: RegExp = /\{/;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
+	const close_block: RegExp = /\}/;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
 	const tst_class: RegExp = /\sclass\s/; 
 	let within_comment: boolean = false;
 	let start_class: number | null = null;
 	let start_block: number | null = null;
 	let block_state: number = 0;
 	let fn_head: string = "";
+	let search_curlies: RegExpExecArray | null = null;
 	let ln: string;
 	for (let i = 0; i < lines.length; i++) {
 		ln = lines[i];
-		if (one_line_comment.test(ln) {
+		if (one_line_comment.test(ln) ) {
 			continue;
 		}
 		if (!within_comment) { within_comment = open_comment.test(lines[i]); }
@@ -268,8 +269,8 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 			start_class = null;
 			continue;
 		}
-		block_state -= open_block.test(lines[i]) ? 1 : 0;
-		block_state += close_block.test(lines[i]) ? 1 : 0;
+		block_state -= (search_curlies = open_block.exec(lines[i])) != null  ? search_curlies.length : 0;
+		block_state += (search_curlies = close_block.exec(lines[i])) != null ? search_curlies.length : 0;
 		if (start_block == null && block_state == -1) {
 			fn_head = get_c_fn_head(lines, i);
 			start_block = i;
