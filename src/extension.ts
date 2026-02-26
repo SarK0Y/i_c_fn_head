@@ -215,6 +215,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		lines[i] = lines[i].trim();
 	}
 	const one_line_comment: RegExp = /^[/]{2}/;
+	const one_line_block: RegExp = /.*\{.*\}.*/;
 	const open_comment: RegExp = /^\/\*/;
 	const close_comment: RegExp = /\*\/$/;
 	const open_block: RegExp = /(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
@@ -225,17 +226,31 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	let start_block: number | null = null;
 	let block_state: number = 0;
 	let fn_head: string = "";
+	let ln: string;
 	for (let i = 0; i < lines.length; i++) {
-		if (one_line_comment.test(lines[i])) {
+		ln = lines[i];
+		if (one_line_comment.test(ln) {
 			continue;
 		}
 		if (!within_comment) { within_comment = open_comment.test(lines[i]); }
 		if (within_comment) {
-			if (close_comment.test(lines[i])) {
+			if (close_comment.test(ln)) {
 				within_comment = false;
 			}
 			continue;
 		}
+		if (one_line_block.test(ln) && block_state == 0) {
+			add_symb(
+				i,
+				i,
+				ln,
+				"Function",
+				uri,
+				symbols
+			);
+			continue;
+		}
+		if (one_line_block.test(ln) && block_state != 0) { continue; }
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
 				start_class = i;
