@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { AccessibilityInformation as wa } from 'vscode';
+import { writeFileSync, readFileSync } from "fs";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -309,7 +310,40 @@ export function add_symb(
 		'',
 		new vscode.Location(uri, set_rng)));
 }
-	
+export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
+	let ret: string = "";
+	let reformat = false;
+	let _txt = typeof txt == "string" ? txt.split("\n") : txt;
+	const one_line_comment: RegExp = /^[/]{2}/;
+	const open_comment: RegExp = /^\/\*/;
+	const close_comment: RegExp = /\*\/$/;
+	let within_comment = false;
+	_txt.forEach(function (strn0: string) {
+		let strn = strn0.trim();
+		const last_indx = strn.length - 1;
+		if (one_line_comment.test(strn)) {
+			return;
+		}
+		if (!within_comment) { within_comment = open_comment.test(strn); }
+		if (within_comment) {
+			if (close_comment.test(strn)) {
+				within_comment = false;
+			}
+			return;
+		}
+		if (strn[0] == "{") {
+			strn = strn[0] + "\n" + strn.substring(1);
+			reformat = true;
+		}
+		if (strn.charAt(last_indx) == "}") {
+			strn = strn.substring(0, last_indx - 1) + "\n" + "}";
+			reformat = true;
+		}
+		ret += strn;
+	});
+}
+export function bkp_source_file(path: vscode.Uri) {
+}
 //fn
 /*
 class MyDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
