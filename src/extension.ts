@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { AccessibilityInformation as wa } from 'vscode';
-import { writeFileSync, readFileSync } from "fs";
+import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync } from "fs";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -342,7 +342,53 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 		ret += strn;
 	});
 }
-export function bkp_source_file(path: vscode.Uri) {
+class sync_bkp {
+	static bkuped: string[] | null = null;
+	static suffix: string = ".YourOriginalFile";
+	static bkp_source_file(path: vscode.Uri): boolean {
+		if (this.file_was_bkuped7(path)) { return false; }
+		let copy_name = path.fsPath + this.suffix;
+		if (existsSync(copy_name)) { return false; }
+		copyFileSync(path.fsPath, copy_name);
+		
+		return false;
+	}
+	static file_was_bkuped7(path: vscode.Uri): boolean {
+		if (this.bkuped == null) { return false; }
+		let ret: boolean | null = null;
+		this.bkuped.forEach(function (strn: string, indx: number, arr: string[]) { 
+			if (strn == path.fsPath) { ret = true; return; }
+		});
+		return ret == null ? false : ret;
+	}
+	static compare_files(_1st: string, _2nd: string): boolean {
+		let open_1st: string = "";
+		let open_2nd: string = "";
+		try {
+			open_1st = readFileSync(
+				_1st,
+				{ encoding: "utf-8", flag: "r" },
+			);
+		}
+		catch (err) {
+			let msg = "File: " + _1st + " got err: " + err + "\n";
+			console.log(msg);
+			return false;
+		}
+		try {
+			open_2nd = readFileSync(
+				_2nd,
+				{ encoding: "utf-8", flag: "r" },
+			);
+		}
+		catch (err) {
+			let msg = "File: " + _2nd + " got err: " + err + "\n";
+			console.log(msg);
+			return false;
+		}
+		if (open_1st == open_2nd) { return true; }
+		return false;
+	}
 }
 //fn
 /*
