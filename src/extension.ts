@@ -96,7 +96,8 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			const fnName = match[1];
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
-		}*/ 
+		}*/
+		dont_clobbe_line_w_curly_bracket(text0, document.uri);
 		if (manage_output(text0, document.uri, symbols) != _manage_output.Rust) { return symbols; }
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
@@ -314,7 +315,7 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 	if (sync_bkp.file_was_bkuped7(uri.fsPath)) { return; }
 	let ret: string = "";
 	let reformat = false;
-	let _txt = typeof txt == "string" ? txt.split("\n") : txt;
+	let _txt = typeof txt == "string" ? txt.split("\n") : txt; //???
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const open_comment: RegExp = /^\/\*/;
 	const close_comment: RegExp = /\*\/$/;
@@ -332,25 +333,32 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 			}
 			return;
 		}
-		if (strn[0] == "{") {
+		if (strn[0] == "{" && strn.length > 1) {
 			strn = strn[0] + "\n" + strn.substring(1);
 			reformat = true;
 		}
-		if (strn.charAt(last_indx) == "}") {
+		if (strn.charAt(last_indx) == "}" && strn.length > 1) {
 			strn = strn.substring(0, last_indx - 1) + "\n" + "}";
 			reformat = true;
 		}
-		ret += strn;
+		ret += "\n" + strn;
 	});
+	if (reformat) { 
+		sync_bkp.writeBkp(
+			ret,
+			uri
+		);
+	}
 }
 class sync_bkp {
 	static bkuped: string[] = [];
 	static suffix: string = ".YourOriginalFile";
-	static bkp_source_file(path: vscode.Uri): boolean {
-		if (this.file_was_bkuped7(path.fsPath)) { return true; }
-		let new_name = path.fsPath + this.suffix;
-		copyFileSync(path.fsPath, new_name);
-		let ret = this.compare_files(path.fsPath, new_name);
+	static bkp_source_file(path0: vscode.Uri | string): boolean {
+		let path = typeof path0 == "string" ? path0 : path0.fsPath;
+		if (this.file_was_bkuped7(path)) { return true; }
+		let new_name = path + this.suffix;
+		copyFileSync(path, new_name);
+		let ret = this.compare_files(path, new_name);
 		if (ret) {
 			this.bkuped.push(new_name);
 		}
@@ -360,7 +368,7 @@ class sync_bkp {
 		let path = path0 + this.suffix;
 		if (this.bkuped.length == 0) { return false; }
 		let ret: boolean = false;
-		this.bkuped.forEach(function (strn: string, indx: number, arr: string[]) { 
+		this.bkuped.forEach(function (strn: string, indx: number, arr: string[]) {
 			if (strn == path) { ret = true; return; }
 		});
 		if (!ret) {
@@ -398,6 +406,16 @@ class sync_bkp {
 		}
 		if (open_1st == open_2nd) { return true; }
 		return false;
+	}
+	static writeBkp(data: string, uri?: vscode.Uri, path0?: string): boolean {
+		let path: string = uri?.fsPath ?? path0 ?? "";
+		if (path == "") { return false; }
+		if (!this.bkp_source_file(path)) { return false; }
+		writeFileSync(
+			path,
+			data
+		);
+		return true;
 	}
 }
 //fn
