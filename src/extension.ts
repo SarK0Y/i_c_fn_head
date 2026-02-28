@@ -323,7 +323,6 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 	_txt.forEach(function (strn0: string) {
 		let pad_len = count_spaces_from_left(strn0);
 		let strn = strn0.trim();
-		const last_indx = strn.length - 1;
 		if (one_line_comment.test(strn)) {
 			return;
 		}
@@ -338,8 +337,8 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 			strn = strn[0] + "\n" + strn.substring(1);
 			reformat = true;
 		}
-		if (strn.charAt(last_indx) == "}" && strn.length > 1) {
-			strn = strn.substring(0, last_indx - 1) + "\n" + "}";
+		if (strn.charAt(strn.length - 1) == "}" && strn.length > 1) {
+			strn = strn.substring(0, strn.length - 1) + "\n" + "}";
 			reformat = true;
 		}
 		ret += "\n" + pad_strn_from_left (strn, pad_len, " ");
