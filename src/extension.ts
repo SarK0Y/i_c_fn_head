@@ -321,6 +321,7 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 	const close_comment: RegExp = /\*\/$/;
 	let within_comment = false;
 	_txt.forEach(function (strn0: string) {
+		let pad_len = count_spaces_from_left(strn0);
 		let strn = strn0.trim();
 		const last_indx = strn.length - 1;
 		if (one_line_comment.test(strn)) {
@@ -341,7 +342,7 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 			strn = strn.substring(0, last_indx - 1) + "\n" + "}";
 			reformat = true;
 		}
-		ret += "\n" + strn;
+		ret += "\n" + pad_strn_from_left (strn, pad_len, " ");
 	});
 	if (reformat) { 
 		sync_bkp.writeBkp(
@@ -349,6 +350,19 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 			uri
 		);
 	}
+}
+export function count_spaces_from_left(strn: &string): number {
+	for (let x = 0; x < strn.length; x++) {
+		if (strn[x] != " ") { return x; }
+	}
+	return 0
+}
+export function pad_strn_from_left(strn: &string, pad_len: number, pad: string): string {
+	let padding = "";
+	for (let y = 0; y < pad_len; y++) {
+		padding += pad;
+	}
+	return padding + strn;
 }
 class sync_bkp {
 	static bkuped: string[] = [];
