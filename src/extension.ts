@@ -320,10 +320,12 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 	const open_comment: RegExp = /^\/\*/;
 	const close_comment: RegExp = /\*\/$/;
 	let within_comment = false;
+	let prev_strn = "";
 	_txt.forEach(function (strn0: string) {
 		let pad_len = count_spaces_from_left(strn0);
 		let strn = strn0.trim();
 		if (one_line_comment.test(strn)) {
+			ret += strn + "\n";
 			return;
 		}
 		if (!within_comment) { within_comment = open_comment.test(strn); }
@@ -331,14 +333,20 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 			if (close_comment.test(strn)) {
 				within_comment = false;
 			}
+			ret += strn + "\n";
 			return;
 		}
-		if (strn[0] == "{" && strn.length > 1) {
-			strn = strn[0] + "\n" + strn.substring(1);
+		/*if (strn[0] == "{" && strn.length > 1) {
+			strn = "{" + "\n" + strn.substring(1);
 			reformat = true;
 		}
 		if (strn.charAt(strn.length - 1) == "}" && strn.length > 1) {
 			strn = strn.substring(0, strn.length - 1) + "\n" + "}";
+			reformat = true;
+		}*/
+		prev_strn = strn;
+		strn = strn.replaceAll("//", "\n//").replaceAll("/*", "\n/*").replaceAll("{", "\n{").replaceAll("}", "}\n");;
+		if (strn.length != prev_strn.length) { 
 			reformat = true;
 		}
 		ret += "\n" + pad_strn_from_left (strn, pad_len, " ");
@@ -356,6 +364,7 @@ export function count_spaces_from_left(strn: &string): number {
 	}
 	return 0
 }
+export function 
 export function pad_strn_from_left(strn: &string, pad_len: number, pad: string): string {
 	let padding = "";
 	for (let y = 0; y < pad_len; y++) {
