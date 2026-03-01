@@ -345,7 +345,7 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 			reformat = true;
 		}*/
 		prev_strn = strn;
-		strn = strn.replaceAll("//", "\n//").replaceAll("/*", "\n/*").replaceAll("{", "\n{").replaceAll("}", "}\n");;
+		strn = exclude_comments_from_ln(strn);
 		if (strn.length != prev_strn.length) { 
 			reformat = true;
 		}
@@ -364,7 +364,20 @@ export function count_spaces_from_left(strn: &string): number {
 	}
 	return 0
 }
-export function 
+export function exclude_comments_from_ln(ln0: &string): string {
+	const one_line_comment: RegExp = /^[/]{2}/;
+	const open_comment: RegExp = /^\/\*/;
+	let ret = "";
+	let ln: string | string[] = ln0.replaceAll("//", "<<>\n//").replaceAll("/*", "<<>\n/*");
+	ln = ln.split("<<>");
+	ln.forEach(function (strn: string) { 
+		if (!one_line_comment.test(strn) || !open_comment.test(strn)) {
+			strn.replaceAll("{", "\n{").replaceAll("}", "}\n");
+		}
+		ret += strn;
+	});
+	return ret;
+}
 export function pad_strn_from_left(strn: &string, pad_len: number, pad: string): string {
 	let padding = "";
 	for (let y = 0; y < pad_len; y++) {
