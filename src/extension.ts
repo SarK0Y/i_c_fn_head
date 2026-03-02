@@ -97,7 +97,7 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			const position = document.positionAt(match.index);
 			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 		}*/
-		dont_clobbe_line_w_curly_bracket(text0, document.uri);
+		//dont_clobbe_line_w_curly_bracket(text0, document.uri);
 		if (manage_output(text0, document.uri, symbols) != _manage_output.Rust) { return symbols; }
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
@@ -216,6 +216,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	for (let i = 0; i < lines.length; i++) {
 		lines[i] = lines[i].trim();
 	}
+	const exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const one_line_block: RegExp = /.*\{.*\}.*/;
 	const open_comment: RegExp = /^\/\*/;
@@ -230,6 +231,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	let fn_head: string = "";
 	let search_curlies: RegExpExecArray | null = null;
 	let ln: string;
+	let no_comments = "";
 	for (let i = 0; i < lines.length; i++) {
 		ln = lines[i];
 		if (one_line_comment.test(ln) ) {
@@ -271,8 +273,9 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 			start_class = null;
 			continue;
 		}
-		block_state -= (search_curlies = open_block.exec(lines[i])) != null  ? search_curlies.length : 0;
-		block_state += (search_curlies = close_block.exec(lines[i])) != null ? search_curlies.length : 0;
+		no_comments = lines[i].replaceAll(exclude_comments, "");
+		block_state -= (search_curlies = open_block.exec(no_comments)) != null  ? search_curlies.length : 0;
+		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
 		if (start_block == null && block_state == -1) {
 			fn_head = get_c_fn_head(lines, i);
 			start_block = i;
@@ -348,8 +351,12 @@ export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vs
 		strn = exclude_comments_from_ln(strn);
 		if (strn.length != prev_strn.length) { 
 			reformat = true;
+			ret += "\n" + strn;
+			return;
 		}
-		ret += "\n" + pad_strn_from_left (strn, pad_len, " ");
+		if (strn.length > 0) {
+			ret += "\n" + pad_strn_from_left(strn, pad_len, " ");
+		}
 	});
 	if (reformat) { 
 		sync_bkp.writeBkp(
@@ -368,13 +375,18 @@ export function exclude_comments_from_ln(ln0: &string): string {
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const open_comment: RegExp = /^\/\*/;
 	let ret = "";
-	let ln: string | string[] = ln0.replaceAll("//", "<<>\n//").replaceAll("/*", "<<>\n/*");
+	let pad_len = count_spaces_from_left(ln0);
+	let ln: string | string[] = ln0.replaceAll("//", "<<>//").replaceAll("/*", "<<>\n/*");
 	ln = ln.split("<<>");
+	let open_curly = "";
+	let close_curly = "";
 	ln.forEach(function (strn: string) { 
-		if (!one_line_comment.test(strn) || !open_comment.test(strn)) {
-			strn.replaceAll("{", "\n{").replaceAll("}", "}\n");
+		if (!one_line_comment.test(strn) && !open_comment.test(strn)) {
+			open_curly = "\n" + " ".repeat(pad_len) + "{";
+			close_curly = "\n" + " ".repeat(pad_len) + "}";
+			strn.replaceAll("{", open_curly).replaceAll("}", close_curly);
 		}
-		ret += strn;
+		ret += " ".repeat(pad_len) + strn;
 	});
 	return ret;
 }
