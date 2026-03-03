@@ -223,7 +223,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	const close_comment: RegExp = /\*\/$/;
 	const open_block: RegExp = /\{/;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	const close_block: RegExp = /\}/;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	const tst_class: RegExp = /\sclass\s/; 
+	const tst_class: RegExp = /\s+(class|struct)\s+/i; 
 	let within_comment: boolean = false;
 	let start_class: number | null = null;
 	let start_block: number | null = null;
@@ -467,65 +467,12 @@ class sync_bkp {
 }
 //fn
 /*
-class MyDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
-    provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
-        // Logic to extract symbols from the document
-        return [
-            new vscode.SymbolInformation('MyFunction', vscode.SymbolKind.Function, new vscode.Location(document.uri, new vscode.Position(1, 2))),
-            // Add more symbols here
-        ];
-    }
-}
-
-// Register the provider in the activate function
-context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider({ language: 'javascript' }, new MyDocumentSymbolProvider()));
-
-// extract stuff
-import * as vscode from 'vscode';
-
-class MyDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
-    provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
-        const symbols: vscode.SymbolInformation[] = [];
-
-        const text = document.getText();
-
-        // Regular expression patterns for different symbols
-        const functionPattern = /function\s+([a-zA-Z_$][0-9a-zA-Z_$]*)\s*\(/g;
-        const classPattern = /class\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
-        const variablePattern = /const\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|let\s+([a-zA-Z_$][0-9a-zA-Z_$]*)|var\s+([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
-
-        // Extract functions
-        let match;
-        while ((match = functionPattern.exec(text)) !== null) {
-            const functionName = match[1];
-            const position = document.positionAt(match.index);
-            symbols.push(new vscode.SymbolInformation(functionName, vscode.SymbolKind.Function, new vscode.Location(document.uri, position)));
-        }
-
-        // Extract classes
-        while ((match = classPattern.exec(text)) !== null) {
-            const className = match[1];
-            const position = document.positionAt(match.index);
-            symbols.push(new vscode.SymbolInformation(className, vscode.SymbolKind.Class, new vscode.Location(document.uri, position)));
-        }
-
-        // Extract variables
-        while ((match = variablePattern.exec(text)) !== null) {
-            const variableName = match[1] || match[2] || match[3];
-            const position = document.positionAt(match.index);
-            symbols.push(new vscode.SymbolInformation(variableName, vscode.SymbolKind.Variable, new vscode.Location(document.uri, position)));
-        }
-
-        return symbols;
-    }
-}
-
-// Register the provider in the activate function
-export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-        vscode.languages.registerDocumentSymbolProvider({ language: 'javascript' }, new MyDocumentSymbolProvider())
-    );
-}
-
-export function deactivate() {}
+>>>>>>>>>>>>>>>>>>>>>>>>> copag
+ https://drive.google.com/file/d/15tU9cVEKlcbelByGuzo7UrZd32ckruUZ/view?usp=sharing
+ https://disk.yandex.ru/d/DCedGk0BJB9YOw 
+ >>>>>>>>>>>>>>>>>>>>>>> BKP
+ https://disk.yandex.ru/d/H-WL_Rbq3F3DtB 
+ https://disk.yandex.ru/d/06mg7S_1sEcQwQ
+  https://drive.google.com/file/d/1gQ4iW7uc5e9dd3lQcZ146Izy6hZI87He/view?usp=sharing 
+ https://drive.google.com/file/d/0B0ZfQGOhsgRtbWQ2bkh6VFdCY2M/view?usp=sharing&resourcekey=0-qWG1G78Mp0KhxW_b9-0FnA 
 */
