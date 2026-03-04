@@ -259,6 +259,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
 				start_class = i;
+				continue;
 			}
 		}
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
