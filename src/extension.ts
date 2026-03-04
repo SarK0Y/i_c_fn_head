@@ -224,10 +224,12 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	const open_block: RegExp = /\{/;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	const close_block: RegExp = /\}/;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
 	const tst_class: RegExp = /\s+(class|struct)\s+/i; 
+	let opened_class = false;
 	let within_comment: boolean = false;
 	let start_class: number | null = null;
 	let start_block: number | null = null;
 	let block_state: number = 0;
+	let sav_block_state = 0;
 	let fn_head: string = "";
 	let search_curlies: RegExpExecArray | null = null;
 	let ln: string;
@@ -259,6 +261,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
 				start_class = i;
+				sav_block_state = block_state;
 				continue;
 			}
 		}
@@ -275,7 +278,11 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 			continue;
 		}
 		no_comments = lines[i].replaceAll(exclude_comments, "");
-		block_state -= (search_curlies = open_block.exec(no_comments)) != null  ? search_curlies.length : 0;
+		block_state -= (search_curlies = open_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		if (!opened_class && start_class != null && sav_block_state != block_state) {
+			block_state += 1;
+			opened_class = true;
+		}
 		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
 		if (start_block == null && block_state == -1) {
 			fn_head = get_c_fn_head(lines, i);
