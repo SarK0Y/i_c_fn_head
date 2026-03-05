@@ -260,6 +260,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		if (one_line_block.test(ln) && block_state != 0) { continue; }
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
+				if (open_block.test(lines[i])) { opened_class = true; }
 				start_class = i;
 				sav_block_state = block_state;
 				continue;
@@ -275,6 +276,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 				symbols
 			);
 			start_class = null;
+			opened_class = false;
 			continue;
 		}
 		no_comments = lines[i].replaceAll(exclude_comments, "");
