@@ -211,21 +211,34 @@ export function rebuild_doc(from: number, doc: string[]): string {
 	}
 	return ret;
 }
+class _block_head {
+	name: string = "";
+	lnum: number = 0;
+	set_info(strn: string, i: number) {
+		if (strn.length <= 1) { return; }
+		this.name = strn;
+		this.lnum = i;		
+	}
+}
 export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolInformation[]) {
 	let lines: string[] = doc.split("\n");
 	for (let i = 0; i < lines.length; i++) {
 		lines[i] = lines[i].trim();
 	}
-	const exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;
+	const exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const one_line_block: RegExp = /.*\{.*\}.*/;
 	const open_comment: RegExp = /^\/\*/;
+	const count_quotes: RegExp = /[\"\'\`]+/g;
+	let quote_state: number = 0;
+	let tmp_quote_state: number = 0;
 	const close_comment: RegExp = /\*\/$/;
 	const open_block: RegExp = /\{/;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	const close_block: RegExp = /\}/;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	const tst_class: RegExp = /\s+(class|struct)\s+/i; 
+	const tst_class: RegExp = /.*(\sclass|\sstruct)\s/i; 
 	let opened_class = false;
 	let within_comment: boolean = false;
+	let within_quotes = false
 	let start_class: number | null = null;
 	let start_block: number | null = null;
 	let block_state: number = 0;
@@ -234,6 +247,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	let search_curlies: RegExpExecArray | null = null;
 	let ln: string;
 	let no_comments = "";
+	let block_head = new _block_head;
 	for (let i = 0; i < lines.length; i++) {
 		ln = lines[i];
 		if (one_line_comment.test(ln) ) {
@@ -243,6 +257,13 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		if (within_comment) {
 			if (close_comment.test(ln)) {
 				within_comment = false;
+			}
+			continue;
+		}
+		if (quote_state == 0) { quote_state = count_quotes.exec(lines[i])?.length ?? 0; } // not complete covering
+		if (quote_state > 0) {
+			if ((tmp_quote_state = count_quotes.exec (lines[i])?.length ?? 0) > 0) {
+				quote_state -= tmp_quote_state;
 			}
 			continue;
 		}
@@ -270,7 +291,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 			add_symb(
 				start_class,
 				i,
-				lines[start_class].replace("class", ""),
+				lines[start_class],
 				"Class",
 				uri,
 				symbols
@@ -286,8 +307,9 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 			opened_class = true;
 		}
 		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		block_head.set_info(lines[i], i);
 		if (start_block == null && block_state == -1) {
-			fn_head = get_c_fn_head(lines, i);
+			fn_head = block_head.name;
 			start_block = i;
 		}
 		if (start_block != null && block_state == 0) {
