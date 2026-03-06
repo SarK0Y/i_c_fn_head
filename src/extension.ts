@@ -98,7 +98,9 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 			symbols.push(new vscode.SymbolInformation(fnName, vscode.SymbolKind.Function, '', new vscode.Location(document.uri, position)));
 		}*/
 		//dont_clobbe_line_w_curly_bracket(text0, document.uri);
-		if (manage_output(text0, document.uri, symbols) != _manage_output.Rust) { return symbols; }
+	//	if (manage_output(text0, document.uri, symbols) != _manage_output.Rust) { return symbols; }
+		manage_output(text0, document.uri, symbols);
+		return symbols;
 		let regex = select_lang_n_tst_fn_head();
 		text.forEach(function (strn: string) {
 			let strn0 = strn.trim();
@@ -162,13 +164,15 @@ class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 	}
 }
 export function select_lang_n_tst_fn_head(): RegExp | null { //RegExpExecArray | null {
-	const langId = vscode.window.activeTextEditor?.document.languageId;
+	const langId = vscode.window.activeTextEditor?.document.uri.fsPath ?? "";
+	let regex = /rs$|c$|cpp$|d$/g;
+	let lang: string = regex.exec(langId)?.[0] ?? "";
 	const msg = "Active lang: " + langId?.toString();
-	switch (langId?.toLowerCase() ) {
+	switch (lang ) {
 		case "c": { return c_cpp_d_head() }
 		case "cpp": { return c_cpp_d_head() }
 		case "d": { return c_cpp_d_head() }
-		case "rust": { return rust_head() }
+		case "rs": { return rust_head() }
 	}
 //	prnt(msg);
 	return null
@@ -180,13 +184,16 @@ enum _manage_output {
 	CPP
 }
 export function manage_output(doc: string, uri: vscode.Uri, symbols: & vscode.SymbolInformation[]): _manage_output | RegExp | null {
-	const langId = vscode.window.activeTextEditor?.document.languageId;
+	const langId = vscode.window.activeTextEditor?.document.uri.fsPath ?? "";
+	let regex = /rs$|c$|cpp$|d$/g;
+	let lang: string = regex.exec(langId)?.[0] ?? "";
 	const msg = "Active lang: " + langId?.toString();
-	switch (langId?.toLowerCase()) {
+	vscode.window.showInformationMessage(msg);
+	switch (lang) {
 		case "c": { c_fn_body(doc, uri, symbols);  return _manage_output.C  }
 		case "cpp": { c_fn_body(doc, uri, symbols); return _manage_output.CPP }
 		case "d": { c_fn_body(doc, uri, symbols); return _manage_output.D }
-		case "rust": { return rust_head() }
+		case "rs": { rust_fn_body(doc, uri, symbols); return _manage_output.Rust }// { return rust_head() }
 	}
 	//	prnt(msg);
 	return null
@@ -286,6 +293,114 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 				sav_block_state = block_state;
 				continue;
 			}
+		}
+		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
+			add_symb(
+				start_class,
+				i,
+				lines[start_class],
+				"Class",
+				uri,
+				symbols
+			);
+			start_class = null;
+			opened_class = false;
+			continue;
+		}
+		no_comments = lines[i].replaceAll(exclude_comments, "");
+		block_state -= (search_curlies = open_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		if (!opened_class && start_class != null && sav_block_state != block_state) {
+			block_state += 1;
+			opened_class = true;
+		}
+		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		block_head.set_info(lines[i], i);
+		if (start_block == null && block_state == -1) {
+			fn_head = block_head.name;
+			start_block = i;
+		}
+		if (start_block != null && block_state == 0) {
+			add_symb(
+				start_block,
+				i,
+				fn_head,
+				"Function",
+				uri,
+				symbols
+			);
+			start_block = null;
+		}
+	}
+}
+export function rust_fn_body(doc: string, uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
+	let lines: string[] = doc.split("\n");
+	for (let i = 0; i < lines.length; i++) {
+		lines[i] = lines[i].trim();
+	}
+	const exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
+	const one_line_comment: RegExp = /^[/]{2}/;
+	const one_line_block: RegExp = /.*\{.*\}.*/;
+	const open_comment: RegExp = /^\/\*/;
+	const count_quotes: RegExp = /[\"\'\`]+/g;
+	let quote_state: number = 0;
+	let tmp_quote_state: number = 0;
+	const close_comment: RegExp = /\*\/$/;
+	const open_block: RegExp = /\{/;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
+	const close_block: RegExp = /\}/;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
+	const tst_class: RegExp = /.*(trait|struct|impl|enum)\s/i;
+	let opened_class = false;
+	let within_comment: boolean = false;
+	let within_quotes = false
+	let start_class: number | null = null;
+	let start_block: number | null = null;
+	let block_state: number = 0;
+	let sav_block_state = 0;
+	let fn_head: string = "";
+	let search_curlies: RegExpExecArray | null = null;
+	let ln: string;
+	let no_comments = "";
+	let block_head = new _block_head;
+	for (let i = 0; i < lines.length; i++) {
+		ln = lines[i];
+		if (one_line_comment.test(ln)) {
+			continue;
+		}
+		if (!within_comment) { within_comment = open_comment.test(lines[i]); }
+		if (within_comment) {
+			if (close_comment.test(ln)) {
+				within_comment = false;
+			}
+			continue;
+		}
+		if (quote_state == 0) { quote_state = count_quotes.exec(lines[i])?.length ?? 0; } // not complete covering
+		if (quote_state > 0) {
+			if ((tmp_quote_state = count_quotes.exec(lines[i])?.length ?? 0) > 0) {
+				quote_state -= tmp_quote_state;
+			}
+			continue;
+		}
+		if (one_line_block.test(ln) && block_state == 0) {
+			add_symb(
+				i,
+				i,
+				ln,
+				"Function",
+				uri,
+				symbols
+			);
+			continue;
+		}
+		if (one_line_block.test(ln) && block_state != 0) { continue; }
+		if (start_class == null && block_state == 0) {
+			if (tst_class.test(lines[i])) {
+				if (open_block.test(lines[i])) { opened_class = true; }
+				start_class = i;
+				sav_block_state = block_state;
+				continue;
+			}
+		}
+		if (start_class == 74) {
+			prnt("");
 		}
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
 			add_symb(
