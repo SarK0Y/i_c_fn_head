@@ -455,6 +455,17 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 		}
 	}
 }
+export function beeeep(txt0: string, rgx: RegExp, symb: string): string {
+	let for_beep: RegExpExecArray | null = rgx.exec(txt0);
+	let txt = txt0;
+	if (for_beep == null) { return txt; }
+	let len = 0;
+	for_beep.forEach(function (strn: string) {
+		len = strn.length;
+		txt = txt.replace(strn, symb.repeat(len));
+	});
+	return txt;
+}
 export function get_c_fn_head(doc: string[], lnum: number): string {
 	for (let i = lnum; i > -1; i--) {
 		if (doc[i].includes("(")) { return doc[i]; }
