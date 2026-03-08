@@ -221,7 +221,7 @@ export function rebuild_doc(from: number, doc: string[]): string {
 class _block_head {
 	name: string = "";
 	lnum: number = 0;
-	mark_fn_head: RegExp = /(^fn\s.*\{)|(\sfn\s.*\{)/;
+	mark_fn_head: RegExp = /(^fn\s.*\{?)|(\sfn\s.*\{?)/;
 	set_info(strn: string, i: number, fn_head?: RegExp) {
 		if (strn.length <= 1) { return; }
 		this.name = strn;
@@ -380,9 +380,9 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 		if (one_line_comment.test(ln)) {
 			continue;
 		}
-		if (!within_comment) { within_comment = open_comment.test(lines[i]); }
+		if (!within_comment) { within_comment = open_comment.test(lines[i].trim() ); }
 		if (within_comment) {
-			if (close_comment.test(ln)) {
+			if (close_comment.test(ln.trim() )) {
 				within_comment = false;
 			}
 			continue;
@@ -394,19 +394,6 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			}
 			continue;
 		}
-		block_head.try_set_info (lines[i], i);
-		if (one_line_block.test(ln) && block_state == 0 ) {
-			add_symb(
-				block_head.lnum,
-				i,
-				block_head.name,
-				"Function",
-				uri,
-				symbols
-			);
-			continue;
-		}
-		if (one_line_block.test(ln) && block_state != 0) { continue; }
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
 				if (open_block.test(lines[i])) { opened_class = true; }
@@ -415,6 +402,31 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 				continue;
 			}
 		}
+		no_comments = lines[i].replaceAll(exclude_comments, "");
+		block_head.try_set_info(no_comments, i);
+		if (start_block == null && block_state == -1) {
+			fn_head = block_head.name;
+			start_block = i;
+		}
+		//if (one_line_block.test(ln) && block_state != 0) { continue; }
+		if (one_line_block.test(ln) && block_state == 0 && block_head.name.length > 0) {
+			add_symb(
+				block_head.lnum,
+				i,
+				lines[i],
+				"Function",
+				uri,
+				symbols
+			);
+			block_head.name = "";
+			continue;
+		}
+		block_state -= (search_curlies = open_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		if (!opened_class && start_class != null && sav_block_state != block_state) {
+			block_state += 1;
+			opened_class = true;
+		}
+		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
 			add_symb(
 				start_class,
@@ -428,27 +440,17 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			opened_class = false;
 			continue;
 		}
-		no_comments = lines[i].replaceAll(exclude_comments, "");
-		block_state -= (search_curlies = open_block.exec(no_comments)) != null ? search_curlies.length : 0;
-		if (!opened_class && start_class != null && sav_block_state != block_state) {
-			block_state += 1;
-			opened_class = true;
-		}
-		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
-	//	block_head.set_info(lines[i], i);
-		if (start_block == null && block_state == -1) {
-			fn_head = block_head.name;
-			start_block = i;
-		}
-		if (start_block != null && block_state == 0) {
+		//	block_head.set_info(lines[i], i);
+		if (start_block != null && block_state == 0 && block_head.name.length > 0) {
 			add_symb(
 				block_head.lnum,
 				i,
-				block_head.get_head(lines[i], i),
+				block_head.name,
 				"Function",
 				uri,
 				symbols
 			);
+			block_head.name = "";
 			start_block = null;
 		}
 	}
