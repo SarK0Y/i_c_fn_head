@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { AccessibilityInformation as wa } from 'vscode';
-import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync } from "fs";
+import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -347,7 +347,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	}
 }
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
-	const exclude_strns: RegExp = /[\"\'\`].*[\"\'\`]/gm;
+	const exclude_strns: RegExp = /(\"[\s\S]*?\")/gm
 	let tmp_doc: string = Array.isArray(doc) ? function (arr: string[]): string{
 		let ret: string = "";
 		arr.forEach(function (strn: string) {
@@ -355,7 +355,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 		});
 		return ret;
 	}(doc) : doc;
-	let beeped_doc = beeeep(tmp_doc, exclude_strns, "#");
+	let beeped_doc = bee_ep(tmp_doc, exclude_strns, "#");
 	let lines: string[] = beeped_doc.split("\n");
 	let orig_lines: string[] = typeof doc == "string" ? doc.split("\n") : doc;
 	for (let i = 0; i < lines.length; i++) {
@@ -465,15 +465,17 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 		}
 	}
 }
-export function beeeep(txt0: string, rgx: RegExp, symb: string): string {
-	let for_beep: RegExpExecArray | null = rgx.exec(txt0);
-	let txt = txt0;
+export function bee_ep(txt0: string, rgx: RegExp, symb: string): string {
+	const alt_nl = "/<==>/";
+	let txt = txt0//.replaceAll ("\n", alt_nl);
+	let for_beep: RegExpMatchArray | null = txt0.match(rgx);
 	if (for_beep == null) { return txt; }
 	let len = 0;
 	for_beep.forEach(function (strn: string) {
 		len = strn.length;
 		txt = txt.replace(strn, symb.repeat(len));
 	});
+	rmSync("/tmp/txt");
 	writeFileSync("/tmp/txt", txt);
 	return txt;
 }
