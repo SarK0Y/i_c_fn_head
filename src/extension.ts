@@ -347,7 +347,17 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	}
 }
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
-	let lines: string[] = typeof doc == "string" ? doc.split("\n") : doc;
+	const exclude_strns: RegExp = /[\"\'\`].*[\"\'\`]/gm;
+	let tmp_doc: string = Array.isArray(doc) ? function (arr: string[]): string{
+		let ret: string = "";
+		arr.forEach(function (strn: string) {
+			ret += strn;
+		});
+		return ret;
+	}(doc) : doc;
+	let beeped_doc = beeeep(tmp_doc, exclude_strns, "#");
+	let lines: string[] = beeped_doc.split("\n");
+	let orig_lines: string[] = typeof doc == "string" ? doc.split("\n") : doc;
 	for (let i = 0; i < lines.length; i++) {
 		lines[i] = lines[i].trim();
 	}
@@ -402,7 +412,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 				continue;
 			}
 		}
-		no_comments = lines[i].replaceAll(exclude_comments, "");
+		no_comments = orig_lines[i].replaceAll(exclude_comments, "");
 		block_head.try_set_info(no_comments, i);
 		if (start_block == null && block_state == -1) {
 			fn_head = block_head.name;
@@ -413,7 +423,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			add_symb(
 				block_head.lnum,
 				i,
-				lines[i],
+				orig_lines[i],
 				"Function",
 				uri,
 				symbols
@@ -431,7 +441,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			add_symb(
 				start_class,
 				i,
-				lines[start_class],
+				orig_lines[start_class],
 				"Class",
 				uri,
 				symbols
@@ -464,6 +474,7 @@ export function beeeep(txt0: string, rgx: RegExp, symb: string): string {
 		len = strn.length;
 		txt = txt.replace(strn, symb.repeat(len));
 	});
+	writeFileSync("/tmp/txt", txt);
 	return txt;
 }
 export function get_c_fn_head(doc: string[], lnum: number): string {
