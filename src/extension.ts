@@ -378,7 +378,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 	let block_state: number = 0;
 	let sav_block_state = 0;
 	let fn_head: string = "";
-	let search_curlies: RegExpExecArray | null = null;
+	let search_curlies: RegExpMatchArray | null = null;
 	let ln: string;
 	let no_comments = "";
 	let block_head = new _block_head;
@@ -428,12 +428,12 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			block_head.name = "";
 			continue;
 		}
-		block_state -= (search_curlies = open_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		block_state -= (search_curlies = no_comments.match(open_block)) != null ? search_curlies.length : 0;
 		if (!opened_class && start_class != null && sav_block_state != block_state) {
 			block_state += 1;
 			opened_class = true;
 		}
-		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		block_state += (search_curlies = no_comments.match (close_block)) != null ? search_curlies.length : 0;
 		//step_back = butterfly.test(lines[i]);
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
 			add_symb(
@@ -471,7 +471,11 @@ export function bee_ep(txt0: string, rgx: RegExp, symb: string): string {
 	let len = 0;
 	for_beep.forEach(function (strn: string) {
 		len = strn.length;
-		txt = txt.replace(strn, symb.repeat(len));
+		let new_strn = "";
+		for (let x = 0; x < len; x++) {
+			if (strn[x] != "\n") { new_strn += symb}
+		}
+		txt = txt.replace(strn, new_strn);
 	});
 	rmSync("/tmp/txt");
 	writeFileSync("/tmp/txt", txt);
