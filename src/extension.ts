@@ -221,7 +221,7 @@ export function rebuild_doc(from: number, doc: string[]): string {
 class _block_head {
 	name: string = "";
 	lnum: number = 0;
-	mark_fn_head: RegExp = /(^fn\s.*\{?)|(\sfn\s.*\{?)/;
+	mark_fn_head: RegExp = /(fn\s.*\{?)|(\sfn\s.*\{?)/;
 	set_info(strn: string, i: number, fn_head?: RegExp) {
 		if (strn.length <= 1) { return; }
 		this.name = strn;
@@ -365,12 +365,10 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 	const one_line_comment: RegExp = /^[/]{2}/;
 	const one_line_block: RegExp = /.*\{.*\}.*/;
 	const open_comment: RegExp = /^\/\*/;
-	const count_quotes: RegExp = /[\"\'\`]+/g;
-	let quote_state: number = 0;
-	let tmp_quote_state: number = 0;
 	const close_comment: RegExp = /\*\/$/;
-	const open_block: RegExp = /\{/;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
-	const close_block: RegExp = /\}/;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
+	const butterfly = /\}.*\{/;
+	const open_block: RegExp = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
+	const close_block: RegExp = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
 	const tst_class: RegExp = /.*(trait|struct|impl|enum)\s/i;
 	let opened_class = false;
 	let within_comment: boolean = false;
@@ -384,8 +382,14 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 	let ln: string;
 	let no_comments = "";
 	let block_head = new _block_head;
-	let tst_head = false;
+	let step_back = false;
+	let step_back_was_used: boolean = false;
 	for (let i = 0; i < lines.length; i++) {
+	/*	if (step_back_was_used) {
+			step_back_was_used = false;
+			step_back = false;
+		}
+		if (step_back) { i--; step_back_was_used = true; step_back = false; }*/
 		ln = lines[i];
 		if (one_line_comment.test(ln)) {
 			continue;
@@ -397,13 +401,6 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			}
 			continue;
 		}
-		if (quote_state == 0) { quote_state = count_quotes.exec(lines[i])?.length ?? 0; } // not complete covering
-		if (quote_state > 0) {
-			if ((tmp_quote_state = count_quotes.exec(lines[i])?.length ?? 0) > 0) {
-				quote_state -= tmp_quote_state;
-			}
-			continue;
-		}
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
 				if (open_block.test(lines[i])) { opened_class = true; }
@@ -412,7 +409,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 				continue;
 			}
 		}
-		no_comments = orig_lines[i].replaceAll(exclude_comments, "");
+		no_comments = lines[i].replaceAll(exclude_comments, "");
 		block_head.try_set_info(no_comments, i);
 		if (start_block == null && block_state == -1) {
 			fn_head = block_head.name;
@@ -437,6 +434,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			opened_class = true;
 		}
 		block_state += (search_curlies = close_block.exec(no_comments)) != null ? search_curlies.length : 0;
+		//step_back = butterfly.test(lines[i]);
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
 			add_symb(
 				start_class,
@@ -466,7 +464,7 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 	}
 }
 export function bee_ep(txt0: string, rgx: RegExp, symb: string): string {
-	const alt_nl = "/<==>/";
+	//const alt_nl = "/<==>/";
 	let txt = txt0//.replaceAll ("\n", alt_nl);
 	let for_beep: RegExpMatchArray | null = txt0.match(rgx);
 	if (for_beep == null) { return txt; }
