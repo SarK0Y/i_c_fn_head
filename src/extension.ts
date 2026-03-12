@@ -504,6 +504,46 @@ export function add_symb(
 		'',
 		new vscode.Location(uri, set_rng)));
 }
+export class lang_element { 
+	#privateVar: number = 0;
+	exclude_strns: RegExp = /(\"[\s\S]*?\")/gm;
+	exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
+	one_line_comment: RegExp = /^[/]{2}/;
+	one_line_block: RegExp = /.*\{.*\}.*/;
+	open_comment: RegExp = /^\/\*/;
+	close_comment: RegExp = /\*\/$/;
+	butterfly = /\}.*\{/;
+	open_block: RegExp = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
+	close_block: RegExp = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
+	tst_class: RegExp = /.*(trait|struct|impl|enum)\s/i;
+	#opened_class = false;
+	#within_comment: boolean = false;
+	#within_quotes = false
+	#start_class: number | null = null;
+	#start_block: number | null = null;
+	#block_state: number = 0;
+	#sav_block_state = 0;
+	#fn_head: string = "";
+	#search_curlies: RegExpMatchArray | null = null;
+	#no_comments = "";
+	#lines: string[] = [];
+	set_lines(arr: string[]) {
+		this.#lines = arr;
+	}
+	one_line_comment7(lnum: number): boolean {
+		return this.one_line_comment.test(this.#lines[lnum]);
+	}
+	within_comment7(lnum: number): boolean {
+		if (!this.#within_comment) { this.#within_comment = this.open_comment.test(this.#lines[lnum].trim()); }
+		if (this.#within_comment) {
+			if (this.close_comment.test(this.#lines[lnum].trim())) {
+				this.#within_comment = false;
+			}
+		}
+		return this.#within_comment;
+	}
+	
+}
 export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
 	if (sync_bkp.file_was_bkuped7(uri.fsPath)) { return; }
 	let ret: string = "";
