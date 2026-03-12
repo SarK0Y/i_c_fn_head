@@ -403,7 +403,9 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 		}
 		if (start_class == null && block_state == 0) {
 			if (tst_class.test(lines[i])) {
-				if (open_block.test(lines[i])) { opened_class = true; }
+				if (open_block.test(lines[i])) {
+					opened_class = true;
+				}
 				start_class = i;
 				sav_block_state = block_state;
 				continue;
@@ -428,12 +430,6 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			block_head.name = "";
 			continue;
 		}
-		block_state -= (search_curlies = no_comments.match(open_block)) != null ? search_curlies.length : 0;
-		if (!opened_class && start_class != null && sav_block_state != block_state) {
-			block_state += 1;
-			opened_class = true;
-		}
-		block_state += (search_curlies = no_comments.match (close_block)) != null ? search_curlies.length : 0;
 		//step_back = butterfly.test(lines[i]);
 		if (start_class != null && block_state == 0 && close_block.test(lines[i])) {
 			add_symb(
@@ -448,6 +444,12 @@ export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: &
 			opened_class = false;
 			continue;
 		}
+		block_state -= (search_curlies = no_comments.match(open_block)) != null ? search_curlies.length : 0;
+		if (!opened_class && start_class != null && sav_block_state != block_state) {
+			block_state += 1;
+			opened_class = true;
+		}
+		block_state += (search_curlies = no_comments.match(close_block)) != null ? search_curlies.length : 0;
 		//	block_head.set_info(lines[i], i);
 		if (start_block != null && block_state == 0 && block_head.name.length > 0) {
 			add_symb(
