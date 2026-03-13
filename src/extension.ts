@@ -530,6 +530,7 @@ export class lang_element {
 	#orig_lines: string[] = [];
 	#block_head: _block_head = new _block_head; 
 	uri: vscode.Uri | null = vscode.window.activeTextEditor?.document.uri ?? null;
+	symbols: vscode.SymbolInformation[] = [];
 	set_lines(arr: string[], orig: string[]) {
 		this.#lines = arr;
 		this.#orig_lines = orig;
@@ -567,7 +568,7 @@ export class lang_element {
 		}
 		return this.#start_block == null
 	}
-	one_line_block7(i: number, symbols: & vscode.SymbolInformation[]): boolean | undefined {
+	one_line_block7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined} 
 		if (this.one_line_block.test(this.#lines[i]) && this.#block_state == 0 && this.#block_head.name.length > 0) {
 			add_symb(
@@ -576,7 +577,23 @@ export class lang_element {
 				this.#orig_lines[i],
 				"Function",
 				this.uri,
-				symbols
+				this.symbols
+			);
+			this.#block_head.name = "";
+			return true;
+		}
+		return false
+	}
+	close_class7(i: number): boolean | undefined {
+		if (this.uri == null) { return undefined }
+		if (this.#start_class != null && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
+			add_symb(
+				this.#block_head.lnum,
+				i,
+				this.#orig_lines[this.#start_class],
+				"Class",
+				this.uri,
+				this.symbols
 			);
 			this.#block_head.name = "";
 			return true;
