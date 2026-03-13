@@ -527,8 +527,12 @@ export class lang_element {
 	#search_curlies: RegExpMatchArray | null = null;
 	#no_comments = "";
 	#lines: string[] = [];
-	set_lines(arr: string[]) {
+	#orig_lines: string[] = [];
+	#block_head: _block_head = new _block_head; 
+	uri: vscode.Uri | null = vscode.window.activeTextEditor?.document.uri ?? null;
+	set_lines(arr: string[], orig: string[]) {
 		this.#lines = arr;
+		this.#orig_lines = orig;
 	}
 	one_line_comment7(lnum: number): boolean {
 		return this.one_line_comment.test(this.#lines[lnum]);
@@ -542,7 +546,43 @@ export class lang_element {
 		}
 		return this.#within_comment;
 	}
-	
+	class_entry7(i: number): boolean {
+		if (this.#start_class == null && this.#block_state == 0) {
+			if (this.tst_class.test(this.#lines[i])) {
+				if (this.open_block.test(this.#lines[i])) {
+					this.#opened_class = true;
+				}
+				this.#start_class = i;
+				this.#sav_block_state = this.#block_state;
+			}
+		}
+		return this.#opened_class;
+	}
+	block_entry7(i: number): boolean {
+		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
+		this.#block_head.try_set_info(this.#no_comments, i);
+		if (this.#start_block == null && this.#block_state == -1) {
+			this.#fn_head = this.#block_head.name;
+			this.#start_block = i;
+		}
+		return this.#start_block == null
+	}
+	one_line_block7(i: number, symbols: & vscode.SymbolInformation[]): boolean | undefined {
+		if (this.uri == null) { return undefined} 
+		if (this.one_line_block.test(this.#lines[i]) && this.#block_state == 0 && this.#block_head.name.length > 0) {
+			add_symb(
+				this.#block_head.lnum,
+				i,
+				this.#orig_lines[i],
+				"Function",
+				this.uri,
+				symbols
+			);
+			this.#block_head.name = "";
+			return true;
+		}
+		return false
+	}
 }
 export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
 	if (sync_bkp.file_was_bkuped7(uri.fsPath)) { return; }
