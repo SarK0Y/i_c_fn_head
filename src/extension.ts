@@ -346,6 +346,34 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 		}
 	}
 }
+export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
+	let rust: lang_element = new lang_element;
+	rust.exclude_strns = /(\"[\s\S]*?\")/gm
+	let tmp_doc: string = Array.isArray(doc) ? function (arr: string[]): string {
+		let ret: string = "";
+		arr.forEach(function (strn: string) {
+			ret += strn;
+		});
+		return ret;
+	}(doc) : doc;
+	let beeped_doc = bee_ep(tmp_doc, rust.exclude_strns, "#");
+	let lines: string[] = beeped_doc.split("\n");
+	let orig_lines: string[] = typeof doc == "string" ? doc.split("\n") : doc;
+	for (let i = 0; i < lines.length; i++) {
+		lines[i] = lines[i].trim();
+	}
+	rust.set_lines(lines, orig_lines);
+	rust.exclude_comments = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
+	rust.one_line_comment = /^[/]{2}/;
+	rust.one_line_block = /.*\{.*\}.*/;
+	rust.open_comment = /^\/\*/;
+	rust.close_comment = /\*\/$/;
+	const butterfly = /\}.*\{/;
+	rust.open_block = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
+	rust.close_block = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
+	rust.tst_class = /.*(trait|struct|impl|enum)\s/i;
+	
+}
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
 	const exclude_strns: RegExp = /(\"[\s\S]*?\")/gm
 	let tmp_doc: string = Array.isArray(doc) ? function (arr: string[]): string{
