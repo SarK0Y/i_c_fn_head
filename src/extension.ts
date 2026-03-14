@@ -584,6 +584,22 @@ export class lang_element {
 		}
 		return false
 	}
+	close_block7(i: number): boolean | undefined {
+		if (this.uri == null) { return undefined }
+		if (this.#start_block != null && this.#block_state == 0 && this.#block_head.name.length > 0) {
+			add_symb(
+				this.#block_head.lnum,
+				i,
+				this.#block_head.name,
+				"Function",
+				this.uri,
+				this.symbols
+			);
+			this.#block_head.name = "";
+			return true;
+		}
+		return false
+	}
 	close_class7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined }
 		if (this.#start_class != null && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
@@ -599,6 +615,16 @@ export class lang_element {
 			return true;
 		}
 		return false
+	}
+	update_block_state(i: number) {
+		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
+		this.#block_head.try_set_info(this.#no_comments, i);
+		this.#block_state -= (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
+		if (!this.#opened_class && this.#start_class != null && this.#sav_block_state != this.#block_state) {
+			this.#block_state += 1;
+			this.#opened_class = true;
+		}
+		this.#block_state += (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
 	}
 }
 export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
