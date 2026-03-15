@@ -362,7 +362,7 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	for (let i = 0; i < lines.length; i++) {
 		lines[i] = lines[i].trim();
 	}
-	rust.set_lines(lines, orig_lines);
+	if (rust.set_lines(lines, orig_lines)) { return; }
 	rust.exclude_comments = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
 	rust.one_line_comment = /^[/]{2}/;
 	rust.one_line_block = /.*\{.*\}.*/;
@@ -372,7 +372,17 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	rust.open_block = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	rust.close_block = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
 	rust.tst_class = /.*(trait|struct|impl|enum)\s/i;
-	
+	let yea_class = false;
+	for (let i = 0; i < lines.length; i++) {
+		if (rust.one_line_comment7(i)) { continue; }
+		if (rust.within_comment7(i)) { continue; }
+		yea_class = rust.class_entry7(i);
+		if (rust.close_class7(i)) { continue; }
+		if (yea_class) { continue; }
+		if (rust.one_line_block7(i)) { continue; }
+		rust.block_entry7(i);
+		if (rust.close_block7(i)) { continue; }
+	}
 }
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
 	const exclude_strns: RegExp = /(\"[\s\S]*?\")/gm
@@ -559,9 +569,11 @@ export class lang_element {
 	#block_head: _block_head = new _block_head; 
 	uri: vscode.Uri | null = vscode.window.activeTextEditor?.document.uri ?? null;
 	symbols: vscode.SymbolInformation[] = [];
-	set_lines(arr: string[], orig: string[]) {
+	set_lines(arr: string[], orig: string[]): boolean {
+		if (this.uri == null) { return false; }
 		this.#lines = arr;
 		this.#orig_lines = orig;
+		return true;
 	}
 	one_line_comment7(lnum: number): boolean {
 		return this.one_line_comment.test(this.#lines[lnum]);
