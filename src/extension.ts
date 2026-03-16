@@ -378,12 +378,13 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 		if (rust.one_line_comment7(i)) { continue; }
 		if (rust.within_comment7(i)) { continue; }
 		yea_class = rust.class_entry7(i);
-		if (rust.close_class7(i)) { continue; }
-		if (yea_class) { yea_class = false; continue; }
-		if (rust.one_line_block7(i)) { continue; }
+		rust.head7(i);
 		rust.block_entry7(i);
-		if (rust.close_block7(i)) { continue; }
+		if (rust.one_line_block7(i)) { continue; }
+		if (rust.close_class7(i)) { continue; }
 		rust.update_block_state(i);
+		//if (yea_class) { yea_class = false; continue; }
+		if (rust.close_block7(i)) { continue; }
 	}
 	symbols.push (...rust.symbols);
 }
@@ -603,8 +604,6 @@ export class lang_element {
 		return this.#opened_class;
 	}
 	block_entry7(i: number): boolean {
-		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
-		this.#block_head.try_set_info(this.#no_comments, i);
 		if (this.#start_block == null && this.#block_state == -1) {
 			this.#fn_head = this.#block_head.name;
 			this.#start_block = i;
@@ -627,6 +626,10 @@ export class lang_element {
 		}
 		return false
 	}
+	head7(i: number) {
+		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
+		this.#block_head.try_set_info(this.#no_comments, i);
+	}
 	close_block7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined }
 		if (this.#start_block != null && this.#block_state == 0 && this.#block_head.name.length > 0) {
@@ -639,13 +642,14 @@ export class lang_element {
 				this.symbols
 			);
 			this.#block_head.name = "";
+			this.#start_block = null;
 			return true;
 		}
 		return false
 	}
 	close_class7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined }
-		if (this.#start_class != null && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
+		if (this.#start_class != null && this.#opened_class && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
 			add_symb(
 				this.#block_head.lnum,
 				i,
@@ -655,6 +659,8 @@ export class lang_element {
 				this.symbols
 			);
 			this.#block_head.name = "";
+			this.#start_class = null;
+			this.#opened_class = false;
 			return true;
 		}
 		return false
