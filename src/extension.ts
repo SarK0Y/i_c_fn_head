@@ -831,4 +831,6 @@ class sync_bkp {
  https://disk.yandex.ru/d/06mg7S_1sEcQwQ
   https://drive.google.com/file/d/1gQ4iW7uc5e9dd3lQcZ146Izy6hZI87He/view?usp=sharing 
  https://drive.google.com/file/d/0B0ZfQGOhsgRtbWQ2bkh6VFdCY2M/view?usp=sharing&resourcekey=0-qWG1G78Mp0KhxW_b9-0FnA 
+ https://disk.yandex.ru/d/457kWno9UEXZxQ
+ https://drive.google.com/file/d/1kGDzmRraRZBTgs3mnnHWlC6aUGsppSjb/view?usp=sharing
 */
