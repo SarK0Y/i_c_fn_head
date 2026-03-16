@@ -62,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 class ShowDocumentSymbols implements vscode.DocumentSymbolProvider {
 	provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
-		const symbols: vscode.SymbolInformation[] = [];
+		let symbols: vscode.SymbolInformation[] = [];
 		let text0 = document.getText();
 		const text = text0.split("\n");
 
@@ -193,7 +193,7 @@ export function manage_output(doc: string, uri: vscode.Uri, symbols: & vscode.Sy
 		case "c": { c_fn_body(doc, uri, symbols);  return _manage_output.C  }
 		case "cpp": { c_fn_body(doc, uri, symbols); return _manage_output.CPP }
 		case "d": { c_fn_body(doc, uri, symbols); return _manage_output.D }
-		case "rs": { rust_fn_body(doc, uri, symbols); return _manage_output.Rust }// { return rust_head() }
+		case "rs": { _rust_fn_body(doc, uri, symbols); return _manage_output.Rust }// { return rust_head() }
 	}
 	//	prnt(msg);
 	return null
@@ -362,7 +362,8 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	for (let i = 0; i < lines.length; i++) {
 		lines[i] = lines[i].trim();
 	}
-	if (rust.set_lines(lines, orig_lines)) { return; }
+	rust.uri = uri;
+	if (!rust.set_lines(lines, orig_lines)) { return; }
 	rust.exclude_comments = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
 	rust.one_line_comment = /^[/]{2}/;
 	rust.one_line_block = /.*\{.*\}.*/;
@@ -378,11 +379,13 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 		if (rust.within_comment7(i)) { continue; }
 		yea_class = rust.class_entry7(i);
 		if (rust.close_class7(i)) { continue; }
-		if (yea_class) { continue; }
+		if (yea_class) { yea_class = false; continue; }
 		if (rust.one_line_block7(i)) { continue; }
 		rust.block_entry7(i);
 		if (rust.close_block7(i)) { continue; }
+		rust.update_block_state(i);
 	}
+	symbols.push (...rust.symbols);
 }
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
 	const exclude_strns: RegExp = /(\"[\s\S]*?\")/gm
