@@ -375,14 +375,14 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	rust.tst_class = /.*(trait|struct|impl|enum)\s/i;
 	let yea_class = false;
 	for (let i = 0; i < lines.length; i++) {
+		rust.update_block_state(i);
 		if (rust.one_line_comment7(i)) { continue; }
 		if (rust.within_comment7(i)) { continue; }
-		yea_class = rust.class_entry7(i);
-		rust.head7(i);
-		rust.block_entry7(i);
+		rust.class_entry7(i);
+		//rust.head7(i);
 		if (rust.one_line_block7(i)) { continue; }
+		rust.block_entry7(i);
 		if (rust.close_class7(i)) { continue; }
-		rust.update_block_state(i);
 		//if (yea_class) { yea_class = false; continue; }
 		if (rust.close_block7(i)) { continue; }
 	}
@@ -604,6 +604,7 @@ export class lang_element {
 		return this.#opened_class;
 	}
 	block_entry7(i: number): boolean {
+		this.head7(i);
 		if (this.#start_block == null && this.#block_state == -1) {
 			this.#fn_head = this.#block_head.name;
 			this.#start_block = i;
@@ -628,6 +629,7 @@ export class lang_element {
 	}
 	head7(i: number) {
 		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
+		if (this.#block_state != 0) { return; }
 		this.#block_head.try_set_info(this.#no_comments, i);
 	}
 	close_block7(i: number): boolean | undefined {
@@ -666,15 +668,18 @@ export class lang_element {
 		return false
 	}
 	update_block_state(i: number) {
-		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
-		this.#block_head.try_set_info(this.#no_comments, i);
+		//	this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
+		//	this.#block_head.try_set_info(this.#no_comments, i);
 		this.#block_state -= (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
 		if (!this.#opened_class && this.#start_class != null && this.#sav_block_state != this.#block_state) {
 			this.#block_state += 1;
 			this.#opened_class = true;
 		}
 		this.#block_state += (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
-	}
+		if (this.#block_state != 0) {
+			vscode.window.showInformationMessage('block state ' + this.#block_state);
+		}
+	}		
 }
 export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
 	if (sync_bkp.file_was_bkuped7(uri.fsPath)) { return; }
