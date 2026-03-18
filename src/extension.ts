@@ -375,7 +375,6 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	rust.tst_class = /.*(trait|struct|impl|enum)\s/i;
 	let yea_class = false;
 	for (let i = 0; i < lines.length; i++) {
-		rust.update_block_state(i);
 		if (rust.one_line_comment7(i)) { continue; }
 		if (rust.within_comment7(i)) { continue; }
 		rust.class_entry7(i);
@@ -384,6 +383,7 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 		rust.block_entry7(i);
 		if (rust.close_class7(i)) { continue; }
 		//if (yea_class) { yea_class = false; continue; }
+		rust.update_block_state(i);
 		if (rust.close_block7(i)) { continue; }
 	}
 	symbols.push (...rust.symbols);
@@ -675,10 +675,7 @@ export class lang_element {
 			this.#block_state += 1;
 			this.#opened_class = true;
 		}
-		this.#block_state += (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
-		if (this.#block_state != 0) {
-			vscode.window.showInformationMessage('block state ' + this.#block_state);
-		}
+		this.#block_state += (this.#search_curlies = this.#no_comments.match(this.close_block)) != null ? this.#search_curlies.length : 0;
 	}		
 }
 export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
