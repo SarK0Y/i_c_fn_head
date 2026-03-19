@@ -347,7 +347,7 @@ export function c_fn_body(doc: string, uri: vscode.Uri, symbols: &vscode.SymbolI
 	}
 }
 export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
-	let rust: lang_element = new lang_element;
+	let rust: lang_element = new lang_element();
 	rust.exclude_strns = /(\"[\s\S]*?\")/gm
 	let tmp_doc: string = Array.isArray(doc) ? function (arr: string[]): string {
 		let ret: string = "";
@@ -378,15 +378,27 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 		if (rust.one_line_comment7(i)) { continue; }
 		if (rust.within_comment7(i)) { continue; }
 		rust.class_entry7(i);
-		//rust.head7(i);
+		rust.head7(i);
 		if (rust.one_line_block7(i)) { continue; }
 		rust.block_entry7(i);
-		if (rust.close_class7(i)) { continue; }
+		//if (rust.close_class7(i)) { continue; }
 		//if (yea_class) { yea_class = false; continue; }
 		rust.update_block_state(i);
 		if (rust.close_block7(i)) { continue; }
 	}
 	symbols.push (...rust.symbols);
+}
+export function rust_class_body(rust: lang_element, uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
+	for (let i = 0; i < rust.rloc; i++) {
+		if (rust.one_line_comment7(i)) { continue; }
+		if (rust.within_comment7(i)) { continue; }
+		rust.class_entry7(i);
+		if (rust.one_line_block7(i)) { continue; }
+		if (rust.close_class7(i)) { continue; }
+		//if (yea_class) { yea_class = false; continue; }
+		rust.update_block_state(i);
+	}
+	symbols.push(...rust.class_symbols);
 }
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
 	const exclude_strns: RegExp = /(\"[\s\S]*?\")/gm
@@ -571,12 +583,15 @@ export class lang_element {
 	#lines: string[] = [];
 	#orig_lines: string[] = [];
 	#block_head: _block_head = new _block_head; 
+	rloc: number = 0;
 	uri: vscode.Uri | null = vscode.window.activeTextEditor?.document.uri ?? null;
 	symbols: vscode.SymbolInformation[] = [];
+	class_symbols: vscode.SymbolInformation[] = [];
 	set_lines(arr: string[], orig: string[]): boolean {
 		if (this.uri == null) { return false; }
 		this.#lines = arr;
 		this.#orig_lines = orig;
+		this.rloc = orig.length;
 		return true;
 	}
 	one_line_comment7(lnum: number): boolean {
@@ -604,7 +619,7 @@ export class lang_element {
 		return this.#opened_class;
 	}
 	block_entry7(i: number): boolean {
-		this.head7(i);
+	//	this.head7(i);
 		if (this.#start_block == null && this.#block_state == -1) {
 			this.#fn_head = this.#block_head.name;
 			this.#start_block = i;
@@ -658,7 +673,7 @@ export class lang_element {
 				this.#orig_lines[this.#start_class],
 				"Class",
 				this.uri,
-				this.symbols
+				this.class_symbols
 			);
 			this.#block_head.name = "";
 			this.#start_class = null;
