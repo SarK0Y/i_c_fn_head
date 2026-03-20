@@ -570,7 +570,7 @@ export class lang_element {
 	open_block: RegExp = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	close_block: RegExp = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
 	tst_class: RegExp = /.*(trait|struct|impl|enum)\s/i;
-	#opened_class = false;
+	#opened_class: number | null = null;
 	#within_comment: boolean = false;
 	#within_quotes = false
 	#start_class: number | null = null;
@@ -607,10 +607,14 @@ export class lang_element {
 		return this.#within_comment;
 	}
 	class_entry7(i: number): boolean {
+		if (this.#start_class != null && this.open_block.test(this.#lines[i])) {
+			this.#opened_class = i;
+			return true;
+		 }
 		if (this.#start_class == null && this.#block_state == 0) {
 			if (this.tst_class.test(this.#lines[i])) {
 				if (this.open_block.test(this.#lines[i])) {
-					this.#opened_class = true;
+					this.#opened_class = i;
 				}
 				this.#start_class = i;
 				this.#sav_block_state = this.#block_state;
@@ -618,25 +622,13 @@ export class lang_element {
 		}
 		return this.#start_class === i;
 	}
-	skip_class_entry(i: number): boolean {
-		if (this.#start_class == null && this.#block_state == 0) {
-			if (this.tst_class.test(this.#lines[i])) {
-				if (this.open_block.test(this.#lines[i])) {
-					this.#opened_class = true;
-				}
-				this.#start_class = i;
-				this.#sav_block_state = this.#block_state;
-			}
-		}
-		return this.#opened_class;
-	}
 	block_entry7(i: number): boolean {
 	//	this.head7(i);
 		if (this.#start_block == null && this.#block_state == -1) {
 			this.#fn_head = this.#block_head.name;
 			this.#start_block = i;
 		}
-		return this.#start_block == null
+		return this.#start_block === i
 	}
 	one_line_block7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined} 
@@ -689,7 +681,7 @@ export class lang_element {
 			);
 			this.#block_head.name = "";
 			this.#start_class = null;
-			this.#opened_class = false;
+			this.#opened_class = null;
 			return true;
 		}
 		return false
@@ -700,7 +692,7 @@ export class lang_element {
 		this.#block_state -= (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
 		if (!this.#opened_class && this.#start_class != null && this.#sav_block_state != this.#block_state) {
 			this.#block_state += 1;
-			this.#opened_class = true;
+			this.#opened_class = i;
 		}
 		this.#block_state += (this.#search_curlies = this.#no_comments.match(this.close_block)) != null ? this.#search_curlies.length : 0;
 	}		
