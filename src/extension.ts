@@ -670,14 +670,14 @@ export class lang_element {
 	}
 	close_class7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined }
-		if (this.#start_class != null && this.#opened_class && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
+		if (this.#start_class != null && this.#opened_class != null && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
 			add_symb(
-				this.#block_head.lnum,
+				this.#start_class,
 				i,
 				this.#orig_lines[this.#start_class],
 				"Class",
 				this.uri,
-				this.class_symbols
+				this.symbols
 			);
 			this.#block_head.name = "";
 			this.#start_class = null;
