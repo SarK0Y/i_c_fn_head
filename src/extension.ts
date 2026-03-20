@@ -656,7 +656,7 @@ export class lang_element {
 		if (this.#start_block != null && this.#block_state == 0 && this.#block_head.name.length > 0) {
 			add_symb(
 				this.#block_head.lnum,
-				i,
+				i + 1,
 				this.#block_head.name,
 				"Function",
 				this.uri,
@@ -673,7 +673,7 @@ export class lang_element {
 		if (this.#start_class != null && this.#opened_class != null && this.#block_state == 0 && this.close_block.test(this.#lines[i])) {
 			add_symb(
 				this.#start_class,
-				i,
+				i + 1,
 				this.#orig_lines[this.#start_class],
 				"Class",
 				this.uri,
