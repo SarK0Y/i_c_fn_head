@@ -607,7 +607,7 @@ export class lang_element {
 		return this.#within_comment;
 	}
 	class_entry7(i: number): boolean {
-		if (this.#start_class != null && this.open_block.test(this.#lines[i])) {
+		if (this.#start_class != null && this.#opened_class == null && this.open_block.test(this.#lines[i])) {
 			this.#opened_class = i;
 			return true;
 		 }
