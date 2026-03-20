@@ -565,7 +565,7 @@ export class lang_element {
 	one_line_comment: RegExp = /^[/]{2}/;
 	one_line_block: RegExp = /.*\{.*\}.*/;
 	open_comment: RegExp = /^\/\*/;
-	close_comment: RegExp = /\*\/$/;
+	close_comment: RegExp = /(\*\/)$/;
 	butterfly = /\}.*\{/;
 	open_block: RegExp = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	close_block: RegExp = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
@@ -602,6 +602,7 @@ export class lang_element {
 		if (this.#within_comment) {
 			if (this.close_comment.test(this.#lines[lnum].trim())) {
 				this.#within_comment = false;
+				return true;
 			}
 		}
 		return this.#within_comment;
