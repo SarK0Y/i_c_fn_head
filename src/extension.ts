@@ -377,11 +377,11 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	for (let i = 0; i < lines.length; i++) {
 		if (rust.one_line_comment7(i)) { continue; }
 		if (rust.within_comment7(i)) { continue; }
-		rust.class_entry7(i);
+		if (rust.class_entry7(i)) { continue; }
 		rust.head7(i);
 		if (rust.one_line_block7(i)) { continue; }
 		rust.block_entry7(i);
-		//if (rust.close_class7(i)) { continue; }
+		if (rust.close_class7(i)) { continue; }
 		//if (yea_class) { yea_class = false; continue; }
 		rust.update_block_state(i);
 		if (rust.close_block7(i)) { continue; }
@@ -607,6 +607,18 @@ export class lang_element {
 		return this.#within_comment;
 	}
 	class_entry7(i: number): boolean {
+		if (this.#start_class == null && this.#block_state == 0) {
+			if (this.tst_class.test(this.#lines[i])) {
+				if (this.open_block.test(this.#lines[i])) {
+					this.#opened_class = true;
+				}
+				this.#start_class = i;
+				this.#sav_block_state = this.#block_state;
+			}
+		}
+		return this.#start_class === i;
+	}
+	skip_class_entry(i: number): boolean {
 		if (this.#start_class == null && this.#block_state == 0) {
 			if (this.tst_class.test(this.#lines[i])) {
 				if (this.open_block.test(this.#lines[i])) {
