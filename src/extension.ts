@@ -372,7 +372,7 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	const butterfly = /\}.*\{/;
 	rust.open_block = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	rust.close_block = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	rust.tst_class = /.*(trait|struct|impl|enum)\s/i;
+	rust.tst_class = /^(trait|struct|(impl(\<)?)|enum)|\s(trait|struct|(impl(\<)?)|enum)/i;
 	let yea_class = false;
 	for (let i = 0; i < lines.length; i++) {
 		if (rust.one_line_comment7(i)) { continue; }
