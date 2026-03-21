@@ -31,18 +31,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(disposable0);
 	context.subscriptions.push(
-		vscode.languages.registerDocumentSymbolProvider({ language: 'Rust' }, new ShowDocumentSymbols())
+		vscode.languages.registerDocumentSymbolProvider({ language: 'rust' }, new ShowDocumentSymbols())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDocumentSymbolProvider({ language: 'D' }, new ShowDocumentSymbols())
+		vscode.languages.registerDocumentSymbolProvider({ language: 'd' }, new ShowDocumentSymbols())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDocumentSymbolProvider({ language: 'C' }, new ShowDocumentSymbols())
+		vscode.languages.registerDocumentSymbolProvider({ language: 'c' }, new ShowDocumentSymbols())
 	);
 	context.subscriptions.push(
-		vscode.languages.registerDocumentSymbolProvider({ language: 'CPP' }, new ShowDocumentSymbols())
+		vscode.languages.registerDocumentSymbolProvider({ language: 'cpp' }, new ShowDocumentSymbols())
 	);
-	vscode.window.onDidChangeTextEditorSelection(handleChangeSel);
+//	vscode.window.onDidChangeTextEditorSelection(handleChangeSel);
 /*	const disposable1 = vscode.commands.registerCommand('extension.getCursorPosition', () => {
 		const editor = vscode.window.activeTextEditor;
 
@@ -188,7 +188,7 @@ export function manage_output(doc: string, uri: vscode.Uri, symbols: & vscode.Sy
 	let regex = /rs$|c$|cpp$|d$/g;
 	let lang: string = regex.exec(langId)?.[0] ?? "";
 	const msg = "Active lang: " + langId?.toString();
-	vscode.window.showInformationMessage(msg);
+	//vscode.window.showInformationMessage(msg);
 	switch (lang) {
 		case "c": { c_fn_body(doc, uri, symbols);  return _manage_output.C  }
 		case "cpp": { c_fn_body(doc, uri, symbols); return _manage_output.CPP }
@@ -372,11 +372,13 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 	const butterfly = /\}.*\{/;
 	rust.open_block = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	rust.close_block = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	rust.tst_class = /^(trait|struct|(impl(\<)?)|enum)|\s(trait|struct|(impl(\<)?)|enum)/i;
-	let yea_class = false;
+	rust.tst_class = /^(trait(\<)?|struct(\<)?|(impl(\<)?)|enum(\<)?)|\s(trait(\<)?|struct(\<)?|(impl(\<)?)|enum(\<)?)/i;
+	let skip: skip_ln = new skip_ln();
+	skip.arr.push(/.*!/gi);
 	for (let i = 0; i < lines.length; i++) {
 		if (rust.one_line_comment7(i)) { continue; }
 		if (rust.within_comment7(i)) { continue; }
+		//if (skip.run(lines[i])) { continue; }
 		if (rust.class_entry7(i)) { continue; }
 		rust.head7(i);
 		if (rust.one_line_block7(i)) { continue; }
@@ -387,18 +389,6 @@ export function _rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: 
 		if (rust.close_block7(i)) { continue; }
 	}
 	symbols.push (...rust.symbols);
-}
-export function rust_class_body(rust: lang_element, uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
-	for (let i = 0; i < rust.rloc; i++) {
-		if (rust.one_line_comment7(i)) { continue; }
-		if (rust.within_comment7(i)) { continue; }
-		rust.class_entry7(i);
-		if (rust.one_line_block7(i)) { continue; }
-		if (rust.close_class7(i)) { continue; }
-		//if (yea_class) { yea_class = false; continue; }
-		rust.update_block_state(i);
-	}
-	symbols.push(...rust.class_symbols);
 }
 export function rust_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
 	const exclude_strns: RegExp = /(\"[\s\S]*?\")/gm
@@ -697,6 +687,17 @@ export class lang_element {
 		}
 		this.#block_state += (this.#search_curlies = this.#no_comments.match(this.close_block)) != null ? this.#search_curlies.length : 0;
 	}		
+}
+export class skip_ln {
+	arr: RegExp[] = []
+	#ret: boolean = false;
+	run(strn: string): boolean {
+		this.#ret = false;
+		for (let i = 0; i < this.arr.length; i++) {
+			this.#ret = this.#ret || strn.match(this.arr[i]) != null;
+		 }
+		return this.#ret;
+	}
 }
 export function dont_clobbe_line_w_curly_bracket(txt: string | string[], uri: vscode.Uri) {
 	if (sync_bkp.file_was_bkuped7(uri.fsPath)) { return; }
