@@ -427,9 +427,9 @@ export function _c_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & v
 		c_like.update_block_state(i);
 		if (c_like.one_line_block7(i)) { continue; }
 		c_like.block_entry7(i);
+		if (c_like.close_block7(i)) { continue; }
 		if (c_like.close_class7(i)) { continue; }
 		//if (yea_class) { yea_class = false; continue; }
-		if (c_like.close_block7(i)) { continue; }
 	}
 	symbols.push(...c_like.symbols);
 }
