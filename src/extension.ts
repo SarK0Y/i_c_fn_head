@@ -416,7 +416,8 @@ export function _c_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & v
 	const butterfly = /\}.*\{/;
 	c_like.open_block = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	c_like.close_block = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	c_like.tst_class = /^(class|struct|enum)|\s(class|struct|enum)/i;
+	c_like.tst_class = /^(class|struct|enum)\s|\s(class|struct|enum)\s/i;
+	c_like.block_head.mark_fn_head = /.*/;
 	for (let i = 0; i < lines.length; i++) {
 		if (c_like.one_line_comment7(i)) { continue; }
 		if (c_like.within_comment7(i)) { continue; }
@@ -425,10 +426,11 @@ export function _c_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & v
 		c_like.head7(i);
 		if (c_like.one_line_block7(i)) { continue; }
 		c_like.block_entry7(i);
+		//if (c_like.block_entry7(i)) { continue; }
 		if (c_like.close_class7(i)) { continue; }
-		//if (yea_class) { yea_class = false; continue; }
 		c_like.update_block_state(i);
 		if (c_like.close_block7(i)) { continue; }
+		//if (yea_class) { yea_class = false; continue; }
 	}
 	symbols.push(...c_like.symbols);
 }
@@ -621,7 +623,7 @@ export class lang_element {
 	#no_comments = "";
 	#lines: string[] = [];
 	#orig_lines: string[] = [];
-	#block_head: _block_head = new _block_head; 
+	block_head: _block_head = new _block_head; 
 	rloc: number = 0;
 	uri: vscode.Uri | null = vscode.window.activeTextEditor?.document.uri ?? null;
 	symbols: vscode.SymbolInformation[] = [];
@@ -652,39 +654,39 @@ export class lang_element {
 			return true;
 		 }
 		if (this.#start_class == null && this.#block_state == 0) {
-			let res = this.#lines[i].match(this.tst_class);
-			if (res != null) {
-			//if (this.tst_class.test(this.#lines[i])) {
-				//if (this.#lines[i].match(this.open_block) != null) {
-				if (this.open_block.test(this.#lines[i])) {
+			//let res = this.#lines[i].match(this.tst_class);
+			//if (res != null) {
+			if (this.tst_class.test(this.#lines[i])) {
+				if (this.#lines[i].match(this.open_block) != null) {
+				//if (this.open_block.test(this.#lines[i])) {
 					this.#opened_class = i;
 				}
 				this.#start_class = i;
 				this.#sav_block_state = this.#block_state;
 			}
 		}
-		return this.#start_class === i;
+		return this.#start_class === i || this.#opened_class === i;
 	}
 	block_entry7(i: number): boolean {
 	//	this.head7(i);
 		if (this.#start_block == null && this.#block_state == -1) {
-			this.#fn_head = this.#block_head.name;
+			this.#fn_head = this.block_head.name;
 			this.#start_block = i;
 		}
 		return this.#start_block === i
 	}
 	one_line_block7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined} 
-		if (this.one_line_block.test(this.#lines[i]) && this.#block_state == 0 && this.#block_head.name.length > 0) {
+		if (this.one_line_block.test(this.#lines[i]) && this.#block_state == 0 && this.block_head.name.length > 0) {
 			add_symb(
-				this.#block_head.lnum,
+				this.block_head.lnum,
 				i,
 				this.#orig_lines[i],
 				"Function",
 				this.uri,
 				this.symbols
 			);
-			this.#block_head.name = "";
+			this.block_head.name = "";
 			return true;
 		}
 		return false
@@ -692,20 +694,20 @@ export class lang_element {
 	head7(i: number) {
 		this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
 		if (this.#block_state != 0) { return; }
-		this.#block_head.try_set_info(this.#no_comments, i);
+		this.block_head.try_set_info(this.#no_comments, i);
 	}
 	close_block7(i: number): boolean | undefined {
 		if (this.uri == null) { return undefined }
-		if (this.#start_block != null && this.#block_state == 0 && this.#block_head.name.length > 0) {
+		if (this.#start_block != null && this.#block_state == 0 && this.block_head.name.length > 0) {
 			add_symb(
-				this.#block_head.lnum,
+				this.block_head.lnum,
 				i + 1,
-				this.#block_head.name,
+				this.#orig_lines[this.block_head.lnum],
 				"Function",
 				this.uri,
 				this.symbols
 			);
-			this.#block_head.name = "";
+			this.block_head.name = "";
 			this.#start_block = null;
 			return true;
 		}
@@ -722,16 +724,17 @@ export class lang_element {
 				this.uri,
 				this.symbols
 			);
-			this.#block_head.name = "";
+			this.block_head.name = "";
 			this.#start_class = null;
 			this.#opened_class = null;
+			this.#opened_class = null
 			return true;
 		}
 		return false
 	}
 	update_block_state(i: number) {
 		//	this.#no_comments = this.#lines[i].replaceAll(this.exclude_comments, "");
-		//	this.#block_head.try_set_info(this.#no_comments, i);
+		//	this.block_head.try_set_info(this.#no_comments, i);
 		this.#block_state -= (this.#search_curlies = this.#no_comments.match(this.open_block)) != null ? this.#search_curlies.length : 0;
 		if (!this.#opened_class && this.#start_class != null && this.#sav_block_state != this.#block_state) {
 			this.#block_state += 1;
