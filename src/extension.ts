@@ -416,7 +416,7 @@ export function _c_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & v
 	const butterfly = /\}.*\{/;
 	c_like.open_block = /\{/g;//(^\{([/]{2})?(\/\*)?)|(\{([/]{2})?(\/[\*]*)?$)/;
 	c_like.close_block = /\}/g;//(^\}([/]{2})?(\/\*)?)|(\}([/]{2})?(\/[\*]*)?$)/;
-	c_like.tst_class = /^(class|struct|enum)|\s(class|struct|enum)/i;
+	c_like.tst_class = /^(class|struct|enum)\s|\s(class|struct|enum)\s/i;
 	c_like.block_head.mark_fn_head = /.*/;
 	for (let i = 0; i < lines.length; i++) {
 		if (c_like.one_line_comment7(i)) { continue; }
@@ -424,11 +424,12 @@ export function _c_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & v
 		//if (skip.run(lines[i])) { continue; }
 		if (c_like.class_entry7(i)) { continue; }
 		c_like.head7(i);
-		c_like.update_block_state(i);
 		if (c_like.one_line_block7(i)) { continue; }
 		c_like.block_entry7(i);
-		if (c_like.close_block7(i)) { continue; }
+		//if (c_like.block_entry7(i)) { continue; }
 		if (c_like.close_class7(i)) { continue; }
+		c_like.update_block_state(i);
+		if (c_like.close_block7(i)) { continue; }
 		//if (yea_class) { yea_class = false; continue; }
 	}
 	symbols.push(...c_like.symbols);
@@ -656,15 +657,15 @@ export class lang_element {
 			//let res = this.#lines[i].match(this.tst_class);
 			//if (res != null) {
 			if (this.tst_class.test(this.#lines[i])) {
-				//if (this.#lines[i].match(this.open_block) != null) {
-				if (this.open_block.test(this.#lines[i])) {
+				if (this.#lines[i].match(this.open_block) != null) {
+				//if (this.open_block.test(this.#lines[i])) {
 					this.#opened_class = i;
 				}
 				this.#start_class = i;
 				this.#sav_block_state = this.#block_state;
 			}
 		}
-		return this.#start_class === i;
+		return this.#start_class === i || this.#opened_class === i;
 	}
 	block_entry7(i: number): boolean {
 	//	this.head7(i);
@@ -701,7 +702,7 @@ export class lang_element {
 			add_symb(
 				this.block_head.lnum,
 				i + 1,
-				this.block_head.name,
+				this.#orig_lines[this.block_head.lnum],
 				"Function",
 				this.uri,
 				this.symbols
@@ -726,6 +727,7 @@ export class lang_element {
 			this.block_head.name = "";
 			this.#start_class = null;
 			this.#opened_class = null;
+			this.#opened_class = null
 			return true;
 		}
 		return false
@@ -916,3 +918,4 @@ class sync_bkp {
  https://disk.yandex.ru/d/457kWno9UEXZxQ
  https://drive.google.com/file/d/1kGDzmRraRZBTgs3mnnHWlC6aUGsppSjb/view?usp=sharing
 */
+// https://github.com/JatinSanghvi/color-my-text-vscode/blob/main/src/extension.ts
