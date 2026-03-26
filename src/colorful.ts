@@ -5,7 +5,81 @@ type Configuration = {
     paths?: string[];
     rules?: Rule[];
 };
+export function extra_activate(): string {
+    return activate_;
+}
+const activate_: string = `
+  //  console.log('Extension "color-my-text" is activated.');
 
+    let allConfigData: ConfigData[] = [];
+
+    // todoEditors need (re)decoration; doneEditors are already up to date.
+    // Tracking both avoids re-decorating unchanged editors when unrelated ones become visible.
+    let todoEditors: vscode.TextEditor[] = [];
+    let doneEditors: vscode.TextEditor[] = [];
+
+    // Disposes old decoration types and rebuilds allConfigData from current settings.
+    function resetDecorations(): void {
+        todoEditors = vscode.window.visibleTextEditors.slice();
+        doneEditors = [];
+
+        allConfigData.forEach(configData => configData.ruleData.forEach(ruleData => ruleData.decorationType.dispose()));
+
+        const configurations = vscode.workspace.getConfiguration('i_c_fn_head').get<Configuration[]>('configurations');
+        allConfigData = toArray(configurations).map(configuration => ({
+            globs: toArray(configuration.paths),
+            ruleData: toArray(configuration.rules).map(buildRuleData),
+        }));
+    }
+
+    // Applies decorations to all queued editors. Runs on a 500ms timer to batch rapid edits.
+
+
+    vscode.workspace.onDidChangeConfiguration(
+        event => {
+            if (event.affectsConfiguration('i_c_fn_head.configurations')) {
+                resetDecorations();
+            }
+        },
+        null,
+        context.subscriptions);
+
+    vscode.window.onDidChangeVisibleTextEditors(
+        visibleEditors => {
+            // Queue newly visible editors; prune editors that were closed.
+            todoEditors = visibleEditors.filter(editor => !doneEditors.includes(editor));
+            doneEditors = doneEditors.filter(editor => visibleEditors.includes(editor));
+            updateDecorations();
+        },
+        null,
+        context.subscriptions);
+
+    vscode.workspace.onDidChangeTextDocument(
+        event => {
+            // Re-queue any visible editor showing the changed document.
+            vscode.window.visibleTextEditors.forEach(visibleEditor => {
+                if (visibleEditor.document === event.document && !todoEditors.includes(visibleEditor)) {
+                    todoEditors.push(visibleEditor);
+                }
+            });
+
+            doneEditors = doneEditors.filter(editor => !todoEditors.includes(editor));
+        },
+        null,
+        context.subscriptions);
+
+    resetDecorations();
+    function updateDecorations(): void {
+        return _updateDecorations(
+            allConfigData,
+            todoEditors,
+            doneEditors
+        );
+    }
+    const intervalId = setInterval(updateDecorations, 500);
+    context.subscriptions.push({ dispose: () => clearInterval(intervalId) });
+
+`
 type Rule = {
     patterns?: string[];
     color?: string;
@@ -74,8 +148,8 @@ function buildRuleData(rule: Rule): RuleData {
     return { decorationType, regexes, multiLine: rule.multiLine === true };
 }
 
-export function activate(context: vscode.ExtensionContext): void {
-    console.log('Extension "color-my-text" is activated.');
+export function activate0(context: vscode.ExtensionContext): void {
+  //  console.log('Extension "color-my-text" is activated.');
 
     let allConfigData: ConfigData[] = [];
 
@@ -91,7 +165,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         allConfigData.forEach(configData => configData.ruleData.forEach(ruleData => ruleData.decorationType.dispose()));
 
-        const configurations = vscode.workspace.getConfiguration('colorMyText').get<Configuration[]>('configurations');
+        const configurations = vscode.workspace.getConfiguration('i_c_fn_head').get<Configuration[]>('configurations');
         allConfigData = toArray(configurations).map(configuration => ({
             globs: toArray(configuration.paths),
             ruleData: toArray(configuration.rules).map(buildRuleData),
@@ -103,7 +177,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.workspace.onDidChangeConfiguration(
         event => {
-            if (event.affectsConfiguration('colorMyText.configurations')) {
+            if (event.affectsConfiguration('i_c_fn_head.configurations')) {
                 resetDecorations();
             }
         },

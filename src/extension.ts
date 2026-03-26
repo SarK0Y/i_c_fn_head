@@ -2,6 +2,8 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { AccessibilityInformation as wa } from 'vscode';
+import { activate0 as colors } from './colorful';
+import { extra_activate } from './colorful';
 import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -18,7 +20,8 @@ function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
 	console.log(msg);
 }
 export function activate(context: vscode.ExtensionContext) {
-
+	eval(extra_activate());
+	return;
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
