@@ -20,7 +20,8 @@ function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
 	console.log(msg);
 }
 export function activate(context: vscode.ExtensionContext) {
-	eval(extra_activate());
+	//eval(extra_activate());
+	colors(context);
 	return;
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
