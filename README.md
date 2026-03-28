@@ -10,31 +10,45 @@
 
 ```json
  "i_c_fn_head.configurations": [
-    {
-        "paths": [
-            "*.d"
-        ],
-        "rules": [
-            {
-                "patterns": [
-                    "[\\S\\s]+\\([\\S\\s]*\\)[\\S\\s]*?\\{"
-                ],
-                "color": "Lime"
-            },
-            {
-                "patterns": [
-                    "(^|[^a-zA-Z0-9_])int($|[^a-zA-Z0-9_])|\\sint\\s"
-                ],
-                "color": "Yellow"
-            },
-            {
-                "patterns": [
-                    "(^|[^a-zA-Z0-9_])float($|[^a-zA-Z0-9_])|\\sint\\s"
-                ],
-                "color": "Yellow"
-            },
-        ]
-    }
-]
+        {
+            "paths": [
+                "*.d"
+            ],
+            "rules": [
+                {
+                    "patterns": [
+                        "@(property|safe|trusted|system|disable|nogc)"
+                    ],
+                    "color": "Pink",
+                },
+                {
+                    "patterns": [
+                        "(\\([a-zA-Z0-9_@\\n\\s,_]*\\))"
+                    ],
+                    "color": "Cyan",
+                    "multiLine": true
+                },
+                {
+                    "patterns": [
+                        "[a-zA-Z0-9_@\\n\\s]+(\\([a-zA-Z0-9_@\\n\\s]*?\\))+[\\s\\n]*\\{"
+                    ],
+                    "color": "Lime",
+                    "multiLine": true
+                },
+                {
+                    "patterns": [
+                        "(^|[^a-zA-Z0-9_])(auto|bool|byte|ubyte|short|ushort|int|uint|long|ulong|char|wchar|dchar|float|double|real|ifloat|idouble|ireal|cfloat|cdouble|creal|void|noreturn)($|[^a-zA-Z0-9_])"
+                    ],
+                    "color": "Yellow"
+                },
+                {
+                    "patterns": [
+                        "(^|[^a-zA-Z0-9_])float($|[^a-zA-Z0-9_])|\\sint\\s"
+                    ],
+                    "color": "Yellow"
+                },
+            ]
+        }
+    ]
 
 ```
