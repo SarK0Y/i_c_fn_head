@@ -17,13 +17,31 @@
             "rules": [
                 {
                     "patterns": [
+                        "(\\(|\\))"
+                    ],
+                    "color": "#a0ffff",
+                },
+                {
+                    "patterns": [
+                        "\"[\\S\\s]*\""
+                    ],
+                    "color": "#00ffff",
+                },
+                {
+                    "patterns": [
                         "@(property|safe|trusted|system|disable|nogc)"
                     ],
                     "color": "Pink",
                 },
                 {
                     "patterns": [
-                        "(\\([a-zA-Z0-9_@\\n\\s,_]*\\))"
+                        "([a-zA-Z0-9_@\\n\\s,_]+\\s*\\()"
+                    ],
+                    "color": "#ffaa00",
+                },
+                {
+                    "patterns": [
+                        "(\\([a-zA-Z0-9_@\\n\\s,_&()/+-.]*\\))"
                     ],
                     "color": "Cyan",
                     "multiLine": true
@@ -37,18 +55,24 @@
                 },
                 {
                     "patterns": [
-                        "(^|[^a-zA-Z0-9_])(auto|bool|byte|ubyte|short|ushort|int|uint|long|ulong|char|wchar|dchar|float|double|real|ifloat|idouble|ireal|cfloat|cdouble|creal|void|noreturn)($|[^a-zA-Z0-9_])"
+                        "(^|[^a-zA-Z0-9_])(string|auto|bool|byte|ubyte|short|ushort|int|size_t|uint|long|ulong|char|wchar|dchar|float|double|real|ifloat|idouble|ireal|cfloat|cdouble|creal|void|noreturn)($|[^a-zA-Z0-9_])"
                     ],
                     "color": "Yellow"
                 },
                 {
                     "patterns": [
-                        "(^|[^a-zA-Z0-9_])float($|[^a-zA-Z0-9_])|\\sint\\s"
+                        "(^|[^a-zA-Z0-9_])(if|else\\sif|else)($|[^a-zA-Z0-9_])"
                     ],
-                    "color": "Yellow"
+                    "color": "Blue"
+                },
+                {
+                    "patterns": [
+                        "[\\S\\s]+"
+                    ],
+                    "color": "BrightWhite",
+                    "multiLine": true
                 },
             ]
         }
     ]
-
 ```
