@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-
+import {langsName} from './faav'
 export class langDefinitionProvider implements vscode.DefinitionProvider {
   async provideDefinition(
     document: vscode.TextDocument,
@@ -14,7 +14,7 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
 
     const exclude = '';
     const max = 500;
-    const uris = await vscode.workspace.findFiles('**/*.{d,rs,c,cpp,h,hpp}', exclude, max);
+    const uris = await vscode.workspace.findFiles('**/*.{langsName.file_exts}', exclude, max);
 
     for (const uri of uris) {
       if (token.isCancellationRequested) break;
