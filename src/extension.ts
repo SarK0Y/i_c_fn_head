@@ -7,6 +7,7 @@ import { extra_activate } from './colorful';
 import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 import { menu } from "./quick_pick";
 import {langDefinitionProvider} from "./goto_impl"
+import {langsName, restrict_search} from './faav'
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -33,9 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
 	colors(context);
 	  const selector: vscode.DocumentSelector = [
-    { scheme: 'file', language: 'D' },
-    { scheme: 'file', language: 'javascript' },
-    { scheme: 'file', language: 'python' }
+    { scheme: 'file', language: ' },
   ];
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(selector, new langDefinitionProvider())
