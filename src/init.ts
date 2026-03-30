@@ -14,6 +14,8 @@ export async function init() {
         set_lang("Rust");
         set_lang("C");
         set_lang("CPP");
+        i_c_fn_head_opts.been_set = true;
+        i_c_fn_head_opts.path_to_conf = uri[0].fsPath;
     }
     catch { }
 }
