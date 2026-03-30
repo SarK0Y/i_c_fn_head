@@ -6,6 +6,7 @@ import { activate0 as colors } from './colorful';
 import { extra_activate } from './colorful';
 import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 import { menu } from "./quick_pick";
+import {langDefinitionProvider} from "./goto_impl"
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -20,17 +21,26 @@ function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
 	let msg = "status bar: " + doc.getText();
 	console.log(msg);
 }
-export function activate(context: vscode.ExtensionContext) {
+export function activate11(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
-	while (true) {
+	let tru = true;
+	while (tru) {
 		menu();
 	}
-	return;
+	//return;
 }
-export function acti1vate1(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
-//	menu();
 	colors(context);
+	  const selector: vscode.DocumentSelector = [
+    { scheme: 'file', language: 'D' },
+    { scheme: 'file', language: 'javascript' },
+    { scheme: 'file', language: 'python' }
+  ];
+  context.subscriptions.push(
+    vscode.languages.registerDefinitionProvider(selector, new langDefinitionProvider())
+  );
+
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
