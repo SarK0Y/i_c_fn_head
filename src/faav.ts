@@ -12,6 +12,6 @@ export class i_c_fn_head_opts {
     static been_set: boolean = false;
     static provide_lang_C: boolean = false;
     static provide_lang_CPP: boolean = false;
-    static provide_lang_D: boolean = true;
-    static provide_lang_Rust: boolean = true;
+    static provide_lang_D: boolean = false;
+    static provide_lang_Rust: boolean = false;
 }

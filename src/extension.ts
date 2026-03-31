@@ -6,8 +6,8 @@ import { activate0 as colors } from './colorful';
 import { extra_activate } from './colorful';
 import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 import { menu } from "./quick_pick";
-import {langDefinitionProvider} from "./goto_impl"
-import {langsName, restrict_search} from './faav'
+import { i_c_fn_head_opts } from './faav';
+import {init } from './init'
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -30,16 +30,11 @@ export function activate11(context: vscode.ExtensionContext) {
 	}
 	//return;
 }
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
+	await init(context);
+	vscode.window.showInformationMessage(i_c_fn_head_opts.path_to_conf);
 	colors(context);
-	  const selector: vscode.DocumentSelector = [
-    { scheme: 'file', language: ' },
-  ];
-  context.subscriptions.push(
-    vscode.languages.registerDefinitionProvider(selector, new langDefinitionProvider())
-  );
-
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
