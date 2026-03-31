@@ -32,9 +32,17 @@ export function activate11(context: vscode.ExtensionContext) {
 }
 export async function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
-	init(context);
+	let res = false;
+	try {
+		await init(context);
+		res = sync_bkp.raw_writeBkp(i_c_fn_head_opts.path_to_conf, null, "/tmp/tst00");
+		sync_bkp.raw_writeBkp("tst", null, "/tmp/tst0");
+		console.log(res);
+	}
+	catch {
+		console.error("err");
+	}
 	vscode.window.showInformationMessage(i_c_fn_head_opts.path_to_conf);
-	colors(context);
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
@@ -910,10 +918,20 @@ class sync_bkp {
 		if (open_1st == open_2nd) { return true; }
 		return false;
 	}
-	static writeBkp(data: string, uri?: vscode.Uri, path0?: string): boolean {
+	static writeBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
 		let path: string = uri?.fsPath ?? path0 ?? "";
 		if (path == "") { return false; }
 		if (!this.bkp_source_file(path)) { return false; }
+		writeFileSync(
+			path,
+			data
+		);
+		return true;
+	}
+	static raw_writeBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
+		let path: string = uri?.fsPath ?? path0 ?? "";
+		//if (path == "") { return false; }
+		//if (!this.bkp_source_file(path)) { return false; }
 		writeFileSync(
 			path,
 			data

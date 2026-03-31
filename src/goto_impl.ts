@@ -8,7 +8,7 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
   ): Promise<vscode.Location[]> {
     const wordRange = document.getWordRangeAtPosition(position, /[\w$]+/);
     if (!wordRange) return [];
-
+    vscode.window.showInformationMessage("hi from def provider");
     const symbol = document.getText(wordRange);
     const results: vscode.Location[] = [];
     const uris = await vscode.workspace.findFiles(
