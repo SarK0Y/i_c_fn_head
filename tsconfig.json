@@ -16,8 +16,8 @@
       "keybindings": [
             {
                 "command": "i_c_fn_head.onKeyPress",
-                "key": "up",      // Change this to your preferred key combo
-                "when": "editorTextFocus" // The command will trigger when the editor is focused
+                "key": "up",
+                "when": "editorTextFocus"
             }
         ]
 }

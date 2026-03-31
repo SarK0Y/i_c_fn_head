@@ -3,7 +3,7 @@ import { i_c_fn_head_opts } from './faav';
 import { langDefinitionProvider } from './goto_impl';
 import { Schema } from 'inspector/promises';
 export async function init(context: & vscode.ExtensionContext) {
-    if (!i_c_fn_head_opts.been_set) { return; }
+   // if (!i_c_fn_head_opts.been_set) { return; }
     const uri = await vscode.workspace.findFiles(
         '**/i_c_fn_head.opts',
         "", /* exclude none path */

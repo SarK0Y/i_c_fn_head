@@ -32,7 +32,7 @@ export function activate11(context: vscode.ExtensionContext) {
 }
 export async function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
-	await init(context);
+	init(context);
 	vscode.window.showInformationMessage(i_c_fn_head_opts.path_to_conf);
 	colors(context);
 	const disposable = vscode.commands.registerCommand('i-c-fn-head.helloWorld', () => {
