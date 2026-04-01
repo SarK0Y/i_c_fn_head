@@ -13,7 +13,6 @@ export async function init(context: & vscode.ExtensionContext) {
         const doc = await vscode.workspace.openTextDocument(uri[0]);
         txt._0 = doc.getText();
         set_lang("D");
-        colors(context);
         set_lang("Rust");
         set_lang("C");
         set_lang("CPP");
@@ -25,6 +24,7 @@ export async function init(context: & vscode.ExtensionContext) {
     }
     catch { }
     regDefProvider(context);
+    colors(context);
     const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
     outputChannel.appendLine(i_c_fn_head_opts.path_to_conf);
     outputChannel.show();
@@ -35,8 +35,11 @@ function run_opt(key: string): RegExp {
 }
 function set_lang(name: string) {
     //vscode.window.showInformationMessage(txt._0);
-   // vscode.window.showInformationMessage(run_opt(name));
-    if (run_opt(name).test(txt._0)) { eval("i_c_fn_head_opts.provide_lang_" + name + "= true"); }
+    const key = "provide_lang_" + name;
+    vscode.window.showInformationMessage(key);
+    if (run_opt(name).test(txt._0) && name == "D") {
+        i_c_fn_head_opts.provide_lang_D = true;
+    }
 }
 class txt {
     static _0: string = "";
@@ -48,16 +51,16 @@ export function regDefProvider(context: & vscode.ExtensionContext) {
       );
 }
 function mkDocSel(): vscode.DocumentSelector {
-    let sel: vscode.DocumentSelector = [];
+    let sel = [] as (vscode.DocumentFilter | string)[];
     let sel_strn: string = "";
-    if (i_c_fn_head_opts.provide_lang_C) { sel_strn += addSel("C") }
-    if (i_c_fn_head_opts.provide_lang_Rust) { sel_strn += addSel("Rust") }
-    if (i_c_fn_head_opts.provide_lang_CPP) { sel_strn += addSel("CPP") }
-    if (i_c_fn_head_opts.provide_lang_D) { sel_strn += addSel("D") }
-    sel_strn += addSel("D");
-    sel = eval(sel_strn);
+    if (i_c_fn_head_opts.provide_lang_C) { sel.push({ scheme: 'file', language: 'c' }); }
+    if (i_c_fn_head_opts.provide_lang_Rust) { sel.push({ scheme: 'file', language: 'rust' }); }
+    if (i_c_fn_head_opts.provide_lang_CPP) { sel.push({ scheme: 'file', language: 'cpp' }); }
+    if (i_c_fn_head_opts.provide_lang_D) { sel.push({ scheme: 'file', language: 'D' }); }
+    vscode.window.showInformationMessage(sel.toString());
     return sel
 }
 function addSel(lang: string): string {
-    return "{ scheme: 'file', language: lang },";    
+    let ret = "{ scheme: 'file', language: " + lang + "},"
+    return ret;    
 }
