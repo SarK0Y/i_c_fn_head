@@ -6,33 +6,49 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ): Promise<vscode.Location[]> {
-    const wordRange = document.getWordRangeAtPosition(position, /[\w$]+/);
+    const wordRange = document.getWordRangeAtPosition(position, /[\w$@_]+/);
     if (!wordRange) return [];
-    vscode.window.showInformationMessage("hi from def provider");
-    const symbol = document.getText(wordRange);
+    let word = document.getText(wordRange);    
     const results: vscode.Location[] = [];
-    const uris = await vscode.workspace.findFiles(
-      '**/*.{langsName.file_exts}',
+    let file_ext: vscode.GlobPattern = "**/*." + langsName.file_exts[0];
+    vscode.window.showInformationMessage(file_ext);
+    let uris = await vscode.workspace.findFiles(
+      //"**/*.d",
+      file_ext,
       restrict_search.exclude_paths, 
       restrict_search.max_num_of_res);
-
+    vscode.window.showInformationMessage(uris.length.toString());
+    if (langsName.file_exts.length > 1) {
+      for (let i = 1; i < langsName.file_exts.length; i++) {
+        file_ext = "**/*." + langsName.file_exts[i];
+        let uri = await vscode.workspace.findFiles(
+          //   '**/*.{langsName.file_exts}',
+            file_ext,
+            restrict_search.exclude_paths,
+            restrict_search.max_num_of_res);
+        uris.push(...uri);
+      }
+    }
     for (const uri of uris) {
-      if (token.isCancellationRequested) break;
+      vscode.window.showInformationMessage("for (const uri of uris) {");
+     // if (token.isCancellationRequested) break;
       try {
         const doc = await vscode.workspace.openTextDocument(uri);
         const text = doc.getText();
-        let idx = text.indexOf(symbol);
+        let idx = text.indexOf(word);
+        vscode.window.showInformationMessage(idx.toString());
         while (idx !== -1) {
           if (token.isCancellationRequested) break;
           // crude heuristic: treat occurrences followed by '(' or ':' or '=' as possible definitions
-          const after = text.substr(idx + symbol.length, 3);
-          const isDef = /[\s\(=:\{]/.test(after) && /function|class|def|interface|=>|constructor/.test(text.substr(Math.max(0, idx-50), 100));
+          const after = text.substr(idx + word.length, 3);
+          vscode.window.showInformationMessage(word + after);
+          const isDef = /[\s\(=:\{]/.test(after);
           if (isDef) {
             const start = doc.positionAt(idx);
-            const end = doc.positionAt(idx + symbol.length);
+            const end = doc.positionAt(idx + word.length);
             results.push(new vscode.Location(uri, new vscode.Range(start, end)));
           }
-          idx = text.indexOf(symbol, idx + 1);
+          idx = text.indexOf(word, idx + 1);
         }
       } catch {
         // ignore files that can't be opened

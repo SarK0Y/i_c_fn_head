@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { i_c_fn_head_opts } from './faav';
+import { i_c_fn_head_opts, langsName } from './faav';
 import { langDefinitionProvider } from './goto_impl';
 import { activate0 as colors } from './colorful';
 export async function init(context: & vscode.ExtensionContext) {
@@ -35,10 +35,21 @@ function run_opt(key: string): RegExp {
 }
 function set_lang(name: string) {
     //vscode.window.showInformationMessage(txt._0);
-    const key = "provide_lang_" + name;
-    vscode.window.showInformationMessage(key);
     if (run_opt(name).test(txt._0) && name == "D") {
         i_c_fn_head_opts.provide_lang_D = true;
+        langsName.file_exts = ["d"];
+    }
+    if (run_opt(name).test(txt._0) && name == "CPP") {
+        i_c_fn_head_opts.provide_lang_CPP = true;
+        langsName.file_exts = ["cpp", "hpp", "h"];
+    }
+    if (run_opt(name).test(txt._0) && name == "C") {
+        i_c_fn_head_opts.provide_lang_C = true;
+        langsName.file_exts = ["c", "h"];
+    }
+    if (run_opt(name).test(txt._0) && name == "Rust") {
+        i_c_fn_head_opts.provide_lang_Rust = true;
+        langsName.file_exts = ["rs"];
     }
 }
 class txt {
@@ -57,10 +68,5 @@ function mkDocSel(): vscode.DocumentSelector {
     if (i_c_fn_head_opts.provide_lang_Rust) { sel.push({ scheme: 'file', language: 'rust' }); }
     if (i_c_fn_head_opts.provide_lang_CPP) { sel.push({ scheme: 'file', language: 'cpp' }); }
     if (i_c_fn_head_opts.provide_lang_D) { sel.push({ scheme: 'file', language: 'D' }); }
-    vscode.window.showInformationMessage(sel.toString());
     return sel
-}
-function addSel(lang: string): string {
-    let ret = "{ scheme: 'file', language: " + lang + "},"
-    return ret;    
 }
