@@ -11,13 +11,11 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     let word = document.getText(wordRange);    
     const results: vscode.Location[] = [];
     let file_ext: vscode.GlobPattern = "**/*." + langsName.file_exts[0];
-    vscode.window.showInformationMessage(file_ext);
     let uris = await vscode.workspace.findFiles(
       //"**/*.d",
       file_ext,
       restrict_search.exclude_paths, 
       restrict_search.max_num_of_res);
-    vscode.window.showInformationMessage(uris.length.toString());
     if (langsName.file_exts.length > 1) {
       for (let i = 1; i < langsName.file_exts.length; i++) {
         file_ext = "**/*." + langsName.file_exts[i];
@@ -30,18 +28,16 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
       }
     }
     for (const uri of uris) {
-      vscode.window.showInformationMessage("for (const uri of uris) {");
      // if (token.isCancellationRequested) break;
       try {
         const doc = await vscode.workspace.openTextDocument(uri);
         const text = doc.getText();
         let idx = text.indexOf(word);
-        vscode.window.showInformationMessage(idx.toString());
+      //  vscode.window.showInformationMessage(idx.toString());
         while (idx !== -1) {
           if (token.isCancellationRequested) break;
           // crude heuristic: treat occurrences followed by '(' or ':' or '=' as possible definitions
           const after = text.substr(idx + word.length, 3);
-          vscode.window.showInformationMessage(word + after);
           const isDef = /[\s\(=:\{]/.test(after);
           if (isDef) {
             const start = doc.positionAt(idx);

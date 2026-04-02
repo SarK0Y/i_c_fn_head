@@ -5,7 +5,7 @@
 **Dear Dev, this extension just shows function's name in breadcrumbs of VSCode for C, CPP, D & Rust. Have a nice day, Dear Dev 🤟🙂**
 <br>**Valuable Remark:** For now, it's usable for D & Rust.
 <br>**Paradigm:** https://alg0z.blogspot.com/2026/03/update-icfnhead.html
-
+<br>**How to use:** https://alg0z8n8its9lovely6tricks.blogspot.com/2026/04/how-to-use-icfnhead-for-vscode.html
 ## Highlight code.
 
 ```json
