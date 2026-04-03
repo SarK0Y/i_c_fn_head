@@ -59,7 +59,6 @@ function set_lang(name: string, context?: vscode.ExtensionContext) {
         context?.subscriptions.push(
             vscode.languages.registerDocumentSymbolProvider({ language: 'rust' }, new ShowDocumentSymbols())
         );
-        console_msg.show("Rust here");
     }
 }
 class txt {
@@ -79,11 +78,4 @@ function mkDocSel(): vscode.DocumentSelector {
     if (i_c_fn_head_opts.provide_lang_CPP) { sel.push({ scheme: 'file', language: 'cpp' }); }
     if (i_c_fn_head_opts.provide_lang_D) { sel.push({ scheme: 'file', language: 'D' }); }
     return sel
-}
-export class console_msg {
-    static #outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-    static show(msg: string) {
-        this.#outputChannel.appendLine(msg);
-        this.#outputChannel.show();
-    }
 }

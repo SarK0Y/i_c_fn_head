@@ -1,5 +1,6 @@
 import { GlobPattern } from "vscode";
 import * as vsc from 'vscode';
+import { prnt } from "./basic_funx";
 export class langsName {
     static name: string = "c";
     static file_exts: string[] = ["c","h"];
@@ -40,13 +41,15 @@ export class _block_head {
     }
 }
 export class cmd_rgx {
-    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(.*)\s*\/\//;
+    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(.*)\s*\/\//g;
     static _collect_rgx_from_doc(txt: string): RegExp[] {
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
         while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
             let try_it = this.strn_2_rgx(m[1]);
-            if (try_it == null) { break}
+            prnt("1st class cmd_rgx");
+            if (try_it == null) { break }
+            prnt(m[1]);
             ret.push(try_it);
         }
         return ret;

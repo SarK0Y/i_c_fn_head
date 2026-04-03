@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
-import {langsName, restrict_search} from './faav'
+import { langsName, restrict_search } from './faav'
+import { getCMD } from './fancy_f12';
 export class langDefinitionProvider implements vscode.DefinitionProvider {
   async provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
     token: vscode.CancellationToken
   ): Promise<vscode.Location[]> {
+    getCMD();
     const wordRange = document.getWordRangeAtPosition(position, /[\w$@_]+/);
     if (!wordRange) return [];
     let word = document.getText(wordRange);    

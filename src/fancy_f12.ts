@@ -1,7 +1,9 @@
 import * as vscode from 'vscode'
-function getCMD(): RegExpMatchArray | null {
+import { cmd_rgx } from './faav';
+export function getCMD(): RegExp[] | null {
     const txt = vscode.window.activeTextEditor?.document.getText();
-    
+    if (txt == undefined) { return null}
+    const ret = cmd_rgx._collect_rgx_from_doc (txt)
     return null
 }
 function cursorPos(): vscode.Position | null {

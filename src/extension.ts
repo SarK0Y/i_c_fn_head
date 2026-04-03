@@ -82,11 +82,6 @@ export function rust_head(): RegExp {
 	const regex: RegExp = /(^\s*(.*)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/m
 	return regex;
 }
-export function prnt(msg: string) {
-	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-	outputChannel.appendLine(msg);
-	outputChannel.show();
-}
 export function rebuild_doc(from: number, doc: string[]): string {
 	let ret: string = "";
 	for (let x = from; x < doc.length; x++) {
