@@ -41,7 +41,7 @@ export class _block_head {
     }
 }
 export class cmd_rgx {
-    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(.*)\s*\/\//g;
+    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*\/[gmis])\s*\/\//g;
     static _collect_rgx_from_doc(txt: string): RegExp[] {
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
