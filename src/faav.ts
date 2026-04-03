@@ -1,4 +1,5 @@
 import { GlobPattern } from "vscode";
+import * as vsc from 'vscode';
 export class langsName {
     static name: string = "c";
     static file_exts: string[] = ["c","h"];
@@ -36,5 +37,27 @@ export class _block_head {
         if (!tst) { return; }
         this.name = strn;
         this.lnum = i;
+    }
+}
+export class cmd_rgx {
+    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(.*)\s*\/\//;
+    static _collect_rgx_from_doc(txt: string): RegExp[] {
+        let m: RegExpExecArray | null;
+        let ret: RegExp[] = [];
+        while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
+            let try_it = this.strn_2_rgx(m[1]);
+            if (try_it == null) { break}
+            ret.push(try_it);
+        }
+        return ret;
+    }
+    static strn_2_rgx(strn: string): RegExp | null {
+        try {
+            return new RegExp(strn);
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            vsc.window.showInformationMessage(msg);
+            return null;
+        }
     }
 }

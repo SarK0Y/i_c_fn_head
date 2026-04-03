@@ -1,11 +1,16 @@
 import * as vscode from 'vscode'
-function getCMD(): string {
+function getCMD(): RegExpMatchArray | null {
+    const txt = vscode.window.activeTextEditor?.document.getText();
+    
+    return null
+}
+function cursorPos(): vscode.Position | null {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) return "";
+    if (!editor) return null;
     const pos = editor.selection.active;
-    const line = pos.line; 
-    const col = pos.character;
-    return ""
+   // const line = pos.line;
+    // const col = pos.character;
+    return pos; 
 }
 /*
 function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
