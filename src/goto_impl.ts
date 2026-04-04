@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { langsName, restrict_search } from './faav'
-import { getCMD } from './fancy_f12';
+import { handleExtraCMDs, pressF12, EL } from './fancy_f12';
+import { prnt } from './basic_funx';
 export class langDefinitionProvider implements vscode.DefinitionProvider {
   async provideDefinition(
     document: vscode.TextDocument,
@@ -9,8 +10,11 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
   ): Promise<vscode.Location[]> {
     const wordRange = document.getWordRangeAtPosition(position, /[\w$@_]+/);
     if (!wordRange) return [];
-    let word = document.getText(wordRange);    
+    let word = document.getText(wordRange);
+    const extra_locations = word != undefined && word != "" ? handleExtraCMDs(word) : handleExtraCMDs();
     const results: vscode.Location[] = [];
+    prnt(extra_locations.kind);
+    if (extra_locations.kind == "extra_locations") { results.push(...extra_locations.v); }
     let file_ext: vscode.GlobPattern = "**/*." + langsName.file_exts[0];
     let uris = await vscode.workspace.findFiles(
       //"**/*.d",
