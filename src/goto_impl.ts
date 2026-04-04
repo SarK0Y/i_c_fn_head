@@ -29,7 +29,7 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
       }
     }
     for (const uri of uris) {
-     // if (token.isCancellationRequested) break;
+      if (token.isCancellationRequested) break;
       try {
         const doc = await vscode.workspace.openTextDocument(uri);
         const text = doc.getText();
