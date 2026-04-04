@@ -1,10 +1,13 @@
 import * as vscode from 'vscode'
 import { cmd_rgx } from './faav';
-export function getCMD(): RegExp[] | null {
+export function getCMD(set_placeholder0?: string): RegExp[] | null {
     const txt = vscode.window.activeTextEditor?.document.getText();
     if (txt == undefined) { return null}
-    const ret = cmd_rgx._collect_rgx_from_doc (txt)
+    const ret = set_placeholder0 ? cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : cmd_rgx._collect_rgx_from_doc(txt); 
     return null
+}
+function handleExtraCMDs(set_placeholder0?: string) {
+    let cmds = set_placeholder0 ? getCMD(set_placeholder0) : getCMD(); 
 }
 function cursorPos(): vscode.Position | null {
     const editor = vscode.window.activeTextEditor;

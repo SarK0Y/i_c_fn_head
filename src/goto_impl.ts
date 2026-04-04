@@ -7,7 +7,6 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ): Promise<vscode.Location[]> {
-    getCMD();
     const wordRange = document.getWordRangeAtPosition(position, /[\w$@_]+/);
     if (!wordRange) return [];
     let word = document.getText(wordRange);    

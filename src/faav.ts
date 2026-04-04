@@ -42,11 +42,26 @@ export class _block_head {
 }
 export class cmd_rgx {
     static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*\/[gmis])\s*\/\//g;
-    static _collect_rgx_from_doc(txt: string): RegExp[] {
+    static placeholder0: string = "@663@";
+    static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
+        if (set_placeholder0) { return this._collect_rgx_from_doc0(txt, set_placeholder0) };
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
         while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
             let try_it = this.strn_2_rgx(m[1]);
+            prnt("1st class cmd_rgx");
+            if (try_it == null) { break }
+            prnt(m[1]);
+            ret.push(try_it);
+        }
+        return ret;
+    }
+    static _collect_rgx_from_doc0(txt: string, set_placeholder0: string): RegExp[] {
+        let m: RegExpExecArray | null;
+        let ret: RegExp[] = [];
+        while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
+            let _m = m[1].replaceAll(this.placeholder0, set_placeholder0);
+            let try_it = this.strn_2_rgx(_m);
             prnt("1st class cmd_rgx");
             if (try_it == null) { break }
             prnt(m[1]);
