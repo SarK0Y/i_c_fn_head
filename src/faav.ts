@@ -77,8 +77,12 @@ export class cmd_rgx {
         return ret;
     }
     static strn_2_rgx(strn: string): RegExp | null {
+        let flags = strn.match(new RegExp("\/[gmis]$", "g"));
+        let _flags = flags != null ? flags[0].slice(1) : "";
+
+        let regex = strn.slice(1).replaceAll("/" + _flags, "");
         try {
-            return new RegExp(strn);
+            return new RegExp(regex, _flags);
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             vsc.window.showInformationMessage(msg);

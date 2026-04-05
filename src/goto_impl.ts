@@ -14,7 +14,9 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     const extra_locations = word != undefined && word != "" ? handleExtraCMDs(word) : handleExtraCMDs();
     const results: vscode.Location[] = [];
     prnt(extra_locations.kind);
-    if (extra_locations.kind == "extra_locations") { results.push(...extra_locations.v); }
+    if (extra_locations.kind == "extra_locations") {
+      results.push(...extra_locations.v);
+    }
     let file_ext: vscode.GlobPattern = "**/*." + langsName.file_exts[0];
     let uris = await vscode.workspace.findFiles(
       //"**/*.d",

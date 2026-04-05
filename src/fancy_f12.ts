@@ -29,6 +29,7 @@ export function handleExtraCMDs(set_placeholder0?: string): EL | pressF12 {
     let f12: pressF12 = new_pressF12();
     if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
     let more_rgxs = handle_rgx_cmd(cmds);
+    prnt(String(more_rgxs));
     if (more_rgxs.length > 0) { return new_EL (more_rgxs); }
     return new_pressF12 (F12_action.cont);
 }
@@ -38,14 +39,14 @@ function handle_rgx_cmd(cmds: RegExp[]): vscode.Location[] {
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator <RegExpExecArray> | null;
     for (let cmd of cmds) { 
-        prnt(cmd.source);
-        if (cmd.source.includes("rgx:")) {
-            let extract = cmd.source.replace(/\/\/\s*rgx:/, "").replace(/\/\/$/, "").trim();
-            prnt(extract);
-            matches = txt.matchAll(new RegExp(extract));
+        prnt("cmd source:" +cmd.source);
+       // if (cmd.source.includes("rgx:")) {
+          //  let extract = cmd.source.replace(/\/\/\s*rgx:/, "").replace(/\/\/$/, "").trim();
+            //prnt("extract:" + extract);
+            matches = txt.matchAll(new RegExp(cmd.source));
             if (matches == null) { continue; }
             res.push(...calc_locations(matches));
-        }
+        //}
     }
     return res;
 }
