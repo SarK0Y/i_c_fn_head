@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import { cmd_rgx } from './faav';
+import { prnt } from './basic_funx';
 export enum F12_action {
     cont,
     stop
@@ -18,7 +19,10 @@ export function getCMD(set_placeholder0?: string): RegExp[] | null {
     const txt = vscode.window.activeTextEditor?.document.getText();
     if (txt == undefined) { return null}
     const ret = set_placeholder0 ? cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : cmd_rgx._collect_rgx_from_doc(txt); 
-    return null
+    let phldr = set_placeholder0 ? set_placeholder0 : "no phldr";
+    prnt(phldr);
+   // prnt (ewt)
+    return ret;
 }
 export function handleExtraCMDs(set_placeholder0?: string): EL | pressF12 {
     let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0) : getCMD(); 
@@ -34,8 +38,10 @@ function handle_rgx_cmd(cmds: RegExp[]): vscode.Location[] {
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator <RegExpExecArray> | null;
     for (let cmd of cmds) { 
+        prnt(cmd.source);
         if (cmd.source.includes("rgx:")) {
             let extract = cmd.source.replace(/\/\/\s*rgx:/, "").replace(/\/\/$/, "").trim();
+            prnt(extract);
             matches = txt.matchAll(new RegExp(extract));
             if (matches == null) { continue; }
             res.push(...calc_locations(matches));

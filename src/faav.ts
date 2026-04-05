@@ -43,9 +43,15 @@ export class _block_head {
 export class cmd_rgx {
     static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*\/[gmis])\s*\/\//g;
     static placeholder0: string = "@663@";
-    static placeholder0_val: string = "";
+    static placeholder0_max_len: number = 200;
     static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
-        if (set_placeholder0) { return this._collect_rgx_from_doc0(txt, set_placeholder0) };
+        if (set_placeholder0 && set_placeholder0.length < this.placeholder0_max_len) { return this._collect_rgx_from_doc0(txt, set_placeholder0) }
+        else { 
+            if (set_placeholder0 && set_placeholder0.includes ("\n")) {
+                let _0 = set_placeholder0.split("\n")[0];
+                return this._collect_rgx_from_doc0(txt, _0)
+            }
+        }
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
         while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
