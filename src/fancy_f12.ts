@@ -21,7 +21,7 @@ export function getCMD(set_placeholder0?: string): RegExp[] | null {
     if (txt == undefined) { return null}
     const ret = set_placeholder0 ? cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : cmd_rgx._collect_rgx_from_doc(txt); 
     let phldr = set_placeholder0 ? set_placeholder0 : "no phldr";
-    prnt(phldr);
+    prnt("calc num of cmds: " + ret.length.toString());
    // prnt (ewt)
     return ret;
 }
@@ -30,44 +30,46 @@ export function handleExtraCMDs(set_placeholder0?: string): EL | pressF12 {
     let f12: pressF12 = new_pressF12();
     if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
     let more_rgxs = handle_rgx_cmd(cmds);
-    if (more_rgxs.length > 0) { return new_EL (more_rgxs); }
+    if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
+    prnt("failed to collect extra locations");
     return new_pressF12 (F12_action.cont);
 }
 function handle_rgx_cmd(cmds: RegExp[]): vscode.Location[] {
-    const txt = vscode.window.activeTextEditor?.document.getText();
-    if (txt == undefined) { return []}
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     let matches0: RegExpMatchArray | null;
-    for (let rgx of cmds) { 
-        prnt("rgx source:" +rgx.source);
-       // if (cmd.source.includes("rgx:")) {
-          //  let extract = cmd.source.replace(/\/\/\s*rgx:/, "").replace(/\/\/$/, "").trim();
-            //prnt("extract:" + extract);
+    let uris = _s_get_files_in_workspace();
+    for (let uri of uris) {
+        let doc = open_doc_from_workspace(uri);
+        if (doc == undefined) {
+            prnt("failed to open " + uri);
+            continue;
+        }
+        let txt = doc.getText();
+        for (let rgx of cmds) {
+            prnt("rgx source:" + rgx.source);
             matches = txt.matchAll(rgx);
             if (matches == null) { continue; }
-            res.push(...calc_locations(matches));
-        //}
+            res.push(...calc_locations(matches, doc));
+        }
     }
     return res;
 }
-function calc_locations(matches: RegExpStringIterator<RegExpExecArray>): vscode.Location[] {
-    const doc = vscode.window.activeTextEditor?.document;
-    if (doc == undefined) { return [] }
-    const txt = doc.getText();
-    const uri = doc.uri;    
+function calc_locations(matches: RegExpStringIterator<RegExpExecArray>, doc: vscode.TextDocument): vscode.Location[] {
     let res: vscode.Location[] = []; 
     let Start = new vscode.Position(0, 0);
     let End = new vscode.Position(0, 0);
     let _1st_ch_indx = 0;
-    for (let m of matches) {
-        let len = m[0].length;
-        _1st_ch_indx = txt.indexOf(m[0], _1st_ch_indx + 1);
-        if (_1st_ch_indx == -1) { break; }
-        Start = doc.positionAt(_1st_ch_indx);
-        End = doc.positionAt(_1st_ch_indx + len);
-        res.push(new vscode.Location ( uri, new vscode.Range(Start, End)));
-
+    let txt = doc.getText();
+    let uri = doc.uri;
+        for (let m of matches) {
+            let len = m[0].length;
+            _1st_ch_indx = txt.indexOf(m[0], _1st_ch_indx + 1);
+            if (_1st_ch_indx == -1) { break; }
+            Start = doc.positionAt(_1st_ch_indx);
+            End = doc.positionAt(_1st_ch_indx + len);
+            res.push(new vscode.Location(uri, new vscode.Range(Start, End)));
+        
     }
     return res;
 }
@@ -79,7 +81,21 @@ function cursorPos(): vscode.Position | null {
     // const col = pos.character;
     return pos; 
 }
-export async function get_files_in_workspace(): Promise <vscode.Uri[]> {
+export function open_doc_from_workspace(uri: vscode.Uri): vscode.TextDocument | undefined {
+    let ret: vscode.TextDocument | undefined = undefined;
+    vscode.workspace.openTextDocument(uri).then(doc => {
+        ret = doc;
+    });
+    return ret;
+}
+export function _s_get_files_in_workspace(): vscode.Uri[] {
+    let ret: vscode.Uri[] = [];
+    let x = _a_get_files_in_workspace().then(res => {
+        ret = res;
+    }).catch(err => { return [] });
+    return ret;
+}
+export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
     let file_ext: vscode.GlobPattern = "**/*." + langsName.file_exts[0];
         let uris = await vscode.workspace.findFiles(
           //"**/*.d",

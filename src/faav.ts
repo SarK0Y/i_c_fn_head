@@ -41,7 +41,7 @@ export class _block_head {
     }
 }
 export class cmd_rgx {
-    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*\/[gmis])\s*\/\//g;
+    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*\/[gmis]*)\s*\/\//g;
     static placeholder0: string = "@663@";
     static placeholder0_max_len: number = 200;
     static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
@@ -57,8 +57,11 @@ export class cmd_rgx {
         while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
             let try_it = this.strn_2_rgx(m[1]);
             prnt("1st class cmd_rgx");
-            if (try_it == null) { break }
-            prnt(m[1]);
+            if (try_it == null) {
+                prnt("_collect_rgx_from_doc: try_it is null" );
+                break
+            }
+            prnt("_collect_rgx_from_doc:" + m[1]);
             ret.push(try_it);
         }
         return ret;
@@ -70,19 +73,26 @@ export class cmd_rgx {
             let _m = m[1].replaceAll(this.placeholder0, set_placeholder0);
             let try_it = this.strn_2_rgx(_m);
             prnt("1st class cmd_rgx");
-            if (try_it == null) { break }
-            prnt(m[1]);
+            if (try_it == null) {
+                prnt("_collect_rgx_from_doc: try_it is null");
+                break
+            }
+            prnt("_collect_rgx_from_doc:" + m[1]);
             ret.push(try_it);
         }
         return ret;
     }
     static strn_2_rgx(strn: string): RegExp | null {
-        let flags = strn.match(new RegExp("\/[gmis]$", "g"));
+        let flags = strn.match(new RegExp("\/[gmis]*$"));
+        let flags_ = strn.match(new RegExp("\/[gmis]+$"));
+        flags = flags_ != null ? flags_ : flags;
         let _flags = flags != null ? flags[0].slice(1) : "";
 
         let regex = strn.slice(1).replaceAll("/" + _flags, "");
         try {
-            return new RegExp(regex, _flags);
+            let ret = new RegExp(regex, _flags);
+            prnt("strn to rgx: " + ret.source + " " + ret.flags);
+            return ret;
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             vsc.window.showInformationMessage(msg);
