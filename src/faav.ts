@@ -41,9 +41,18 @@ export class _block_head {
     }
 }
 export class cmd_rgx {
-    static #collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*\/[gmis]*)\s*\/\//g;
+    static collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*:::[gmis]*)\s*\/\//g;
     static placeholder0: string = "@663@";
     static placeholder0_max_len: number = 200;
+    static open_rgx: string = "/";
+    static close_rgx: string = ":::";
+    static get_collect_rgx_from_doc(open_rgx?: string, close_rgx?: string): RegExp {
+        this.open_rgx = open_rgx ?? this.open_rgx;
+        this.close_rgx = close_rgx ?? this.close_rgx;
+        let construct_rgx: string = "//\s*rgx:\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\s*//";
+        this.collect_rgx_from_doc = new RegExp(construct_rgx, "g");
+        return this.collect_rgx_from_doc;
+    }
     static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
         if (set_placeholder0 && set_placeholder0.length < this.placeholder0_max_len) { return this._collect_rgx_from_doc0(txt, set_placeholder0) }
         else { 
@@ -54,7 +63,7 @@ export class cmd_rgx {
         }
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
-        while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
+        while ((m = this.collect_rgx_from_doc.exec(txt)) != null) {
             let try_it = this.strn_2_rgx(m[1]);
             prnt("1st class cmd_rgx");
             if (try_it == null) {
@@ -69,7 +78,7 @@ export class cmd_rgx {
     static _collect_rgx_from_doc0(txt: string, set_placeholder0: string): RegExp[] {
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
-        while ((m = this.#collect_rgx_from_doc.exec(txt)) != null) {
+        while ((m = this.collect_rgx_from_doc.exec(txt)) != null) {
             let _m = m[1].replaceAll(this.placeholder0, set_placeholder0);
             let try_it = this.strn_2_rgx(_m);
             prnt("1st class cmd_rgx");
@@ -83,12 +92,10 @@ export class cmd_rgx {
         return ret;
     }
     static strn_2_rgx(strn: string): RegExp | null {
-        let flags = strn.match(new RegExp("\/[gmis]*$"));
-        let flags_ = strn.match(new RegExp("\/[gmis]+$"));
-        flags = flags_ != null ? flags_ : flags;
-        let _flags = flags != null ? flags[0].slice(1) : "";
-
-        let regex = strn.slice(1).replaceAll("/" + _flags, "");
+        let check_end_of_rgx = this.close_rgx + "[gmis]*$";
+        let flags = strn.match(new RegExp(check_end_of_rgx));
+        let _flags = flags != null ? flags[0].slice(this.close_rgx.length) : "";
+        let regex = strn.slice(1).replaceAll(this.close_rgx + _flags, "");
         try {
             let ret = new RegExp(regex, _flags);
             prnt("strn to rgx: " + ret.source + " " + ret.flags);
