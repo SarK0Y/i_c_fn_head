@@ -1,9 +1,18 @@
 import { GlobPattern } from "vscode";
 import * as vsc from 'vscode';
 import { prnt } from "./basic_funx";
-export class langsName {
-    static name: string = "c";
-    static file_exts: string[] = ["c","h"];
+export function langsName(): {name: string, file_exts: string []} {
+    let langId = vsc.window.activeTextEditor?.document.languageId;
+    if (langId == undefined) {
+        return { name: "", file_exts: [] };
+    }
+    switch (langId.toLowerCase()) {
+        case "c": { return { name: "C", file_exts: ["c", "h"] }; }
+        case "d": { return { name: "D", file_exts: ["d"] }; }
+        case "rust": { return { name: "Rust", file_exts: ["rs"] }; }
+        case "cpp": { return { name: "CPP", file_exts: ["cpp", "hpp", "h"] }; }
+        default: { return { name: "", file_exts: [] }; }
+    }
 }
 export class restrict_search {
     static max_num_of_res: number = 2000;

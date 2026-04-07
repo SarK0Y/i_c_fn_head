@@ -34,28 +34,24 @@ function set_lang(name: string, context?: vscode.ExtensionContext) {
     //vscode.window.showInformationMessage(txt._0);
     if (run_opt(name).test(txt._0) && name == "D") {
         i_c_fn_head_opts.provide_lang_D = true;
-        langsName.file_exts = ["d"];
         context?.subscriptions.push(
             vscode.languages.registerDocumentSymbolProvider({ language: 'D' }, new ShowDocumentSymbols())
         );
     }
     if (run_opt(name).test(txt._0) && name == "CPP") {
         i_c_fn_head_opts.provide_lang_CPP = true;
-        langsName.file_exts = ["cpp", "hpp", "h"];
         context?.subscriptions.push(
             vscode.languages.registerDocumentSymbolProvider({ language: 'cpp' }, new ShowDocumentSymbols())
         );
     }
     if (run_opt(name).test(txt._0) && name == "C") {
         i_c_fn_head_opts.provide_lang_C = true;
-        langsName.file_exts = ["c", "h"];
         context?.subscriptions.push(
             vscode.languages.registerDocumentSymbolProvider({ language: 'c' }, new ShowDocumentSymbols())
         );
     }
     if (run_opt(name).test(txt._0) && name == "Rust") {
         i_c_fn_head_opts.provide_lang_Rust = true;
-        langsName.file_exts = ["rs"];
         context?.subscriptions.push(
             vscode.languages.registerDocumentSymbolProvider({ language: 'rust' }, new ShowDocumentSymbols())
         );

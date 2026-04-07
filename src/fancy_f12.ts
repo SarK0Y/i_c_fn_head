@@ -47,6 +47,7 @@ function handle_rgx_cmd(cmds: RegExp[]): vscode.Location[] {
             prnt("failed to open " + uri);
             continue;
         }
+        prnt(doc.fileName);
         let txt = doc.getText();
         prnt("start to iter rgxs");
         for (let rgx of cmds) {
@@ -100,16 +101,17 @@ export async function _a2s_get_files_in_workspace(): Promise <vscode.Uri[]> {
 export function _s_get_files_in_workspace(): vscode.Uri[] {
     let ret: vscode.Uri[] = [];
     let x = _a2s_get_files_in_workspace().then(res => {
-        ret = res;
-    }).catch(err => { return [] });
+        ret.push(...res);
+        prnt("res " + res.length + "& ret " + ret.length);
+    }).catch(err => { prnt(err.message); return [] });
     return ret;
 }
 export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
     let file_ext: vscode.GlobPattern = "";
     let uris: vscode.Uri[] = [];
-    if (langsName.file_exts.length > 0) {
-        for (let i = 0; i < langsName.file_exts.length; i++) {
-            file_ext = "**/*." + langsName.file_exts[i];
+    if (langsName().file_exts.length > 0) {
+        for (let i = 0; i < langsName().file_exts.length; i++) {
+            file_ext = "**/*." + langsName().file_exts[i];
             prnt('update file_ext ' + file_ext);
             let uri = await vscode.workspace.findFiles(
               //   '**/*.{langsName.file_exts}',
