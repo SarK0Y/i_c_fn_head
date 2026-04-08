@@ -42,19 +42,23 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     let uri: vscode.Uri;
     prnt("uris num" + uris.length);
     for (uri of uris) {
-        let doc = await vscode.workspace.openTextDocument(uri);
-        if (doc == undefined) {
-            prnt("failed to open " + uri);
-            continue;
-        }
-        prnt(doc.fileName);
-        let txt = doc.getText();
-        prnt("start to iter rgxs");
-        for (let rgx of cmds) {
-            prnt("rgx source:" + rgx.source);
-            matches = txt.matchAll(rgx);
-            if (matches == null) { continue; }
-            res.push(...calc_locations(matches, doc));
+        try {
+            let doc = await vscode.workspace.openTextDocument(uri);
+            if (doc == undefined) {
+                prnt("failed to open " + uri);
+                continue;
+            }
+            prnt(doc.fileName);
+            let txt = doc.getText();
+            prnt("start to iter rgxs");
+            for (let rgx of cmds) {
+                prnt("rgx source:" + rgx.source);
+                matches = txt.matchAll(rgx);
+                if (matches == null) { continue; }
+                res.push(...calc_locations(matches, doc));
+            }
+        } catch (error) {
+            prnt("doc: " + uri.fsPath + "err " + String (error));
         }
     }
     return res;
