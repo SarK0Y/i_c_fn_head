@@ -100,10 +100,18 @@ export async function _a2s_get_files_in_workspace(): Promise <vscode.Uri[]> {
 }
 export function _s_get_files_in_workspace(): vscode.Uri[] {
     let ret: vscode.Uri[] = [];
+    let done = false;
+    let count_down = 4;
     let x = _a2s_get_files_in_workspace().then(res => {
         ret.push(...res);
         prnt("res " + res.length + "& ret " + ret.length);
+        done = true;
     }).catch(err => { prnt(err.message); return [] });
+    while (!done) {
+        if (count_down < 0) { break; }
+        setTimeout(() => { }, 250);
+        count_down--;
+    }
     return ret;
 }
 export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
