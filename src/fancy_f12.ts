@@ -25,24 +25,24 @@ export function getCMD(set_placeholder0?: string): RegExp[] | null {
    // prnt (ewt)
     return ret;
 }
-export function handleExtraCMDs(set_placeholder0?: string): EL | pressF12 {
+export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | pressF12> {
     let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0) : getCMD(); 
     let f12: pressF12 = new_pressF12();
     if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
-    let more_rgxs = handle_rgx_cmd(cmds);
+    let more_rgxs = await handle_rgx_cmd(cmds);
     if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
     prnt("failed to collect extra locations");
     return new_pressF12 (F12_action.cont);
 }
-function handle_rgx_cmd(cmds: RegExp[]): vscode.Location[] {
+async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     prnt("start handle_rgx_cmd");
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
-    let matches0: RegExpMatchArray | null;
-    let uris = _s_get_files_in_workspace();
+    let uris = await _a_get_files_in_workspace();
+    let uri: vscode.Uri;
     prnt("uris num" + uris.length);
-    for (let uri of uris) {
-        let doc = open_doc_from_workspace(uri);
+    for (uri of uris) {
+        let doc = await vscode.workspace.openTextDocument(uri);
         if (doc == undefined) {
             prnt("failed to open " + uri);
             continue;
@@ -84,35 +84,6 @@ function cursorPos(): vscode.Position | null {
    // const line = pos.line;
     // const col = pos.character;
     return pos; 
-}
-export async function _open_doc_from_workspace(uri: vscode.Uri): Promise<vscode.TextDocument | undefined> {
-    return await vscode.workspace.openTextDocument(uri);
-}
-export function open_doc_from_workspace(uri: vscode.Uri): vscode.TextDocument | undefined {
-    let ret: vscode.TextDocument | undefined = undefined;
-    _open_doc_from_workspace(uri).then(doc => {
-        ret = doc;
-    });
-    return ret;
-}
-export async function _a2s_get_files_in_workspace(): Promise <vscode.Uri[]> {
-    return await _a_get_files_in_workspace();
-}
-export function _s_get_files_in_workspace(): vscode.Uri[] {
-    let ret: vscode.Uri[] = [];
-    let done = false;
-    let count_down = 4;
-    let x = _a2s_get_files_in_workspace().then(res => {
-        ret.push(...res);
-        prnt("res " + res.length + "& ret " + ret.length);
-        done = true;
-    }).catch(err => { prnt(err.message); return [] });
-    while (!done) {
-        if (count_down < 0) { break; }
-        setTimeout(() => { }, 250);
-        count_down--;
-    }
-    return ret;
 }
 export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
     let file_ext: vscode.GlobPattern = "";

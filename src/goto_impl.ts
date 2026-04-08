@@ -11,7 +11,7 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     const wordRange = document.getWordRangeAtPosition(position, /[\w$@_]+/);
     //if (!wordRange) return [];
     let word = document.getText(wordRange);
-    const extra_locations = word != undefined && word != "" ? handleExtraCMDs(word) : handleExtraCMDs();
+    const extra_locations = word != undefined && word != "" ? await handleExtraCMDs(word) : await handleExtraCMDs();
     const results: vscode.Location[] = [];
     prnt(extra_locations.kind);
     if (extra_locations.kind == "extra_locations") {
