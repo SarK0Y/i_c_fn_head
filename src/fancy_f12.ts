@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
-import { cmd_rgx } from './faav';
-import { prnt } from './basic_funx';
+import {  } from './faav';
+import { prnt, cmd_rgx, getCMD } from './basic_funx';
 import { langsName, restrict_search } from './faav';
 export enum F12_action {
     cont,
@@ -15,15 +15,6 @@ export function new_EL(v?: vscode.Location[]): EL {
 export function new_pressF12(v?: F12_action): pressF12 {
     let ret = v ? v : F12_action.cont;
     return { kind: "F12_action", v: ret };
-}
-export function getCMD(set_placeholder0?: string): RegExp[] | null {
-    const txt = vscode.window.activeTextEditor?.document.getText();
-    if (txt == undefined) { return null}
-    const ret = set_placeholder0 ? cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : cmd_rgx._collect_rgx_from_doc(txt); 
-    let phldr = set_placeholder0 ? set_placeholder0 : "no phldr";
-    prnt("calc num of cmds: " + ret.length.toString());
-   // prnt (ewt)
-    return ret;
 }
 export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | pressF12> {
     let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0) : getCMD(); 
@@ -40,7 +31,6 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     let uris = await _a_get_files_in_workspace();
     let uri: vscode.Uri;
-    prnt("uris num" + uris.length);
     for (uri of uris) {
         try {
             let doc = await vscode.workspace.openTextDocument(uri);
@@ -48,11 +38,8 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
                 prnt("failed to open " + uri);
                 continue;
             }
-            prnt(doc.fileName);
             let txt = doc.getText();
-            prnt("start to iter rgxs");
             for (let rgx of cmds) {
-                prnt("rgx source:" + rgx.source);
                 matches = txt.matchAll(rgx);
                 if (matches == null) { continue; }
                 res.push(...calc_locations(matches, doc));
