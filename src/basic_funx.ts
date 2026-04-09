@@ -104,7 +104,7 @@ export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] | 
         for (let exc of exclude_paths0) {
             ret = exclude_path(uris, exc);
         }
-        return ret;
+        return ret.length == 0? uris: ret;
     } catch (err) {
         prnt(String(err))
         return

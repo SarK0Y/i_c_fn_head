@@ -17,7 +17,7 @@ export function new_pressF12(v?: F12_action): pressF12 {
     return { kind: "F12_action", v: ret };
 }
 export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | pressF12> {
-    let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0) : getCMD(); 
+    let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0, null, "rgx") : getCMD(null, null, "rgx"); 
     let f12: pressF12 = new_pressF12();
     if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
     let more_rgxs = await handle_rgx_cmd(cmds);
