@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { uri_to_file_of_opts } from './init';
 class set_cmd_type {
-    static v: string = "rgx:";
+    static v: string = "rgx";
 }
 export function prnt(msg: string) {
     console_msg.show(msg);
@@ -16,6 +16,7 @@ export class console_msg {
 export function getCMD(set_placeholder0?: string | null, _txt?: string | undefined | null,  cmd_type?: string): RegExp[] | null {
     const txt = _txt ? _txt : vscode.window.activeTextEditor?.document.getText();
     set_cmd_type.v = cmd_type ? cmd_type : set_cmd_type.v;
+    cmd_rgx.set_collect_rgx_from_doc();
     if (txt == undefined) { return null}
     const ret = set_placeholder0 ? cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : cmd_rgx._collect_rgx_from_doc(txt); 
     let phldr = set_placeholder0 ? set_placeholder0 : "no phldr";
@@ -35,19 +36,13 @@ export class cmd_rgx {
     ): RegExp {
         this.open_rgx = open_rgx ?? this.open_rgx;
         this.close_rgx = close_rgx ?? this.close_rgx;
-        let cmd_type = set_cmd_type.v ?? "rgx:";
-        let construct_rgx: string = "//\s*" + cmd_type + "\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\s*//";
+        let cmd_type = set_cmd_type.v ?? "rgx";
+        let construct_rgx: string = "//\s*" + cmd_type + ":\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\s*//";
         this.collect_rgx_from_doc = new RegExp(construct_rgx, "g");
         return this.collect_rgx_from_doc;
     }
     static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
-        if (set_placeholder0 && set_placeholder0.length < this.placeholder0_max_len) { return this._collect_rgx_from_doc0(txt, set_placeholder0) }
-        else {
-            if (set_placeholder0 ) {//&& set_placeholder0.includes("\n")) {
-                //let _0 = set_placeholder0.split("\n")[0];
-                return this._collect_rgx_from_doc0(txt, set_placeholder0)
-            }
-        }
+        if (set_placeholder0) { return this._collect_rgx_from_doc0(txt, set_placeholder0) }
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
         while ((m = this.collect_rgx_from_doc.exec(txt)) != null) {
@@ -97,10 +92,11 @@ export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] | 
     try {
         let ret: vscode.Uri[] = [];    
         const file_of_opts = await uri_to_file_of_opts();
-        const txt = vscode.workspace.openTextDocument(file_of_opts[0]);
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        prnt(txt);
         let exclude_paths0 = getCMD(
             null,
-            (await txt).getText(),
+            txt,
             "exclude_path"
         );
         if (exclude_paths0 == null) { return; }
@@ -116,6 +112,7 @@ export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] | 
 function exclude_path(uris: vscode.Uri[], rgx: RegExp): vscode.Uri[] {
     let ret: vscode.Uri[] = [];
     for (let uri of uris) {
+        prnt(rgx.source);
         if (!uri.fsPath.match(rgx)) { ret.push (uri)}
     }
     return ret;

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import {  } from './faav';
-import { prnt, cmd_rgx, getCMD } from './basic_funx';
+import { prnt, cmd_rgx, getCMD, exclude_paths } from './basic_funx';
 import { langsName, restrict_search } from './faav';
 export enum F12_action {
     cont,
@@ -30,6 +30,7 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     let uris = await _a_get_files_in_workspace();
+    uris = await exclude_paths(uris) ?? uris;
     let uri: vscode.Uri;
     for (uri of uris) {
         try {
