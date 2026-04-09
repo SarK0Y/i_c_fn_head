@@ -8,20 +8,6 @@ import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSyn
 import { menu } from "./quick_pick";
 import { i_c_fn_head_opts } from './faav';
 import {init } from './init'
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-function handleChangeSel(event: vscode.TextEditorSelectionChangeEvent) {
-	console.log("Change in the text editor");
-	for (var i = 0; i < event.selections.length; i++) {
-		var selection = event.selections[i];
-		console.log("Start- Line: (" + selection.start.line + ") Col: (" + selection.start.character + ") End- Line: (" + selection.end.line + ") Col: (" + selection.end.character + ")");
-	}
-	var scroll = vscode.workspace.getConfiguration("editorScroll");
-	console.log(event);
-	var doc: vscode.TextDocument = vscode.workspace.textDocuments[0];
-	let msg = "status bar: " + doc.getText();
-	console.log(msg);
-}
 export function activate11(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
 	let tru = true;
@@ -95,11 +81,6 @@ export function c_cpp_d_head(): RegExp {
 export function rust_head(): RegExp {
 	const regex: RegExp = /(^\s*(.*)?\s*fn\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\w+)?\s*{?$)/m
 	return regex;
-}
-export function prnt(msg: string) {
-	const outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
-	outputChannel.appendLine(msg);
-	outputChannel.show();
 }
 export function rebuild_doc(from: number, doc: string[]): string {
 	let ret: string = "";

@@ -4,7 +4,7 @@
   "description": "Dear Dev, this extension just shows function's name in breadcrumbs of VSCode for C, CPP, D & Rust. Have a nice day, Dear Dev 🤟🙂",
   "publisher": "SarK0Y",
   "repository": "https://github.com/SarK0Y/i_c_fn_head",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.105.0"
   },
