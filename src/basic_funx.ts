@@ -37,8 +37,9 @@ export class cmd_rgx {
         this.open_rgx = open_rgx ?? this.open_rgx;
         this.close_rgx = close_rgx ?? this.close_rgx;
         let cmd_type = set_cmd_type.v ?? "rgx";
-        let construct_rgx: string = "//\s*" + cmd_type + ":\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\s*//";
+        let construct_rgx: string = "//\\s*" + cmd_type + ":\\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\\s*//";
         this.collect_rgx_from_doc = new RegExp(construct_rgx, "g");
+        prnt("set_collect_rgx_from_doc: "+this.collect_rgx_from_doc.source);
         return this.collect_rgx_from_doc;
     }
     static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
