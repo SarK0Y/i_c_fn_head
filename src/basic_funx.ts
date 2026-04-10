@@ -122,8 +122,10 @@ async function exclude_path(rgx: RegExp): Promise <void> {
     
     for (let i = 0; i < exclude_uris.v.length; i++) {
         await prnt(rgx.source);
-        if (exclude_uris.v[i].fsPath.match(rgx) != null) {
-            await prnt(exclude_uris.v[i].fsPath);
+        exclude_uris.s[i] = exclude_uris.v[i].fsPath.trim();
+        if (exclude_uris.s[i].match(rgx) != null) {
+            await prnt(exclude_uris.s[i]);
+            exclude_uris.s.splice(i, 1)
             exclude_uris.v.splice(i, 1)
         }
     }
@@ -159,6 +161,7 @@ export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
         return false;
     }
 }
-class exclude_uris {
+export class exclude_uris {
     static v: vscode.Uri[] = []
+    static s: string[] = []
 }

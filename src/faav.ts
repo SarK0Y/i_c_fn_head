@@ -3,8 +3,9 @@ import * as vsc from 'vscode';
 import { prnt } from "./basic_funx";
 import * as path from "path";
 export async function langsName1(): Promise <{name: string, file_exts: string []}> {
-    let langId = vsc.window.activeTextEditor?.document.languageId;
-    await prnt("langsName(): " + langId, rank_msg.dbg);
+    let doc = vsc.window.activeTextEditor?.document;
+    let langId = doc?.languageId;
+    await prnt("langsName(): " + langId + " " + doc?.uri, rank_msg.dbg);
     if (langId == undefined) {
         return { name: "", file_exts: [] };
     }
@@ -17,7 +18,7 @@ export async function langsName1(): Promise <{name: string, file_exts: string []
     }
 }
 export async function langsName(): Promise<{ name: string, file_exts: string[] }> {
-    const langId = path.extname(vsc.window.activeTextEditor?.document.uri.fsPath || '').slice(1);
+    const langId = path.extname(vsc.window.activeTextEditor?.document.uri.fsPath || '');//.slice(1);
     let regex = /rs$|c$|cpp$|d$/g;
     let lang: string = regex.exec(langId)?.[0] ?? "";
     const msg = "Active lang: " + langId?.toString();

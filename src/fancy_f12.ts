@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { rank_msg } from './faav';
-import { prnt, cmd_rgx, getCMD, exclude_paths } from './basic_funx';
+import { prnt, cmd_rgx, getCMD, exclude_paths , exclude_uris} from './basic_funx';
 import { langsName, restrict_search } from './faav';
 export enum F12_action {
     cont,
@@ -34,12 +34,12 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     await prnt("start handle_rgx_cmd");
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
-    let uris = await _a_get_files_in_workspace();
-    await prnt("uris number: " + uris.length, rank_msg.dbg);
-    await exclude_paths(uris);
-    await prnt("num of pruned uris: " + uris.length, rank_msg.dbg);
+    exclude_uris.v = await _a_get_files_in_workspace();
+    await prnt("uris number: " + exclude_uris.v.length, rank_msg.dbg);
+    await exclude_paths(exclude_uris.v);
+    await prnt("num of pruned uris: " + exclude_uris.v.length, rank_msg.dbg);
     let uri: vscode.Uri;
-    for (uri of uris) {
+    for (uri of exclude_uris.v) {
         try {
             let doc = await vscode.workspace.openTextDocument(uri);
             if (doc == undefined) {
@@ -95,7 +95,7 @@ export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
             let uri = await vscode.workspace.findFiles(
               //   '**/*.{langsName.file_exts}',
                 file_ext,
-                restrict_search.exclude_paths,
+               "", //restrict_search.exclude_paths,
                 restrict_search.max_num_of_res);
             uris.push(...uri);
           }
