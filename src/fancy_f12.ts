@@ -87,9 +87,10 @@ function cursorPos(): vscode.Position | null {
 export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
     let file_ext: vscode.GlobPattern = "";
     let uris: vscode.Uri[] = [];
-    if ((await langsName()).file_exts.length > 0) {
-        for (let i = 0; i < (await langsName()).file_exts.length; i++) {
-            file_ext = "**/*." + (await langsName()).file_exts[i];
+    let file_exts = (await langsName()).file_exts;
+    if (file_exts.length > 0) {
+        for (let i = 0; i < file_exts.length; i++) {
+            file_ext = "**/*." + file_exts[i];
             await prnt('update file_ext ' + file_ext);
             let uri = await vscode.workspace.findFiles(
               //   '**/*.{langsName.file_exts}',
