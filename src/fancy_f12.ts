@@ -36,7 +36,7 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     let uris = await _a_get_files_in_workspace();
     await prnt("uris number: " + uris.length, rank_msg.dbg);
-    uris = await exclude_paths(uris) ?? uris;
+    await exclude_paths(uris);
     await prnt("num of pruned uris: " + uris.length, rank_msg.dbg);
     let uri: vscode.Uri;
     for (uri of uris) {

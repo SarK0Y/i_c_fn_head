@@ -99,7 +99,7 @@ export class cmd_rgx {
 }
 export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] |  undefined> {
     try {
-        let ret: vscode.Uri[] = [];    
+        exclude_uris.v = uris;
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(txt);
@@ -110,22 +110,33 @@ export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] | 
         );
         if (exclude_paths0 == null) { return; }
         for (let exc of exclude_paths0) {
-            ret = await exclude_path(uris, exc);
+            await exclude_path(exc);
         }
-        return ret.length == 0? uris: ret;
+        return exclude_uris.v;
     } catch (err) {
         await prnt("exclude path: " + String(err), rank_msg.err);
         return
     }
 }
-async function exclude_path(uris: vscode.Uri[], rgx: RegExp): Promise <vscode.Uri[]> {
+async function exclude_path(rgx: RegExp): Promise <void> {
+    
+    for (let i = 0; i < exclude_uris.v.length; i++) {
+        await prnt(rgx.source);
+        if (exclude_uris.v[i].fsPath.match(rgx) != null) {
+            await prnt(exclude_uris.v[i].fsPath);
+            exclude_uris.v.splice(i, 1)
+        }
+    }
+}
+async function exclude_path1(uris: vscode.Uri[], rgx: RegExp): Promise<vscode.Uri[]> {
     let ret: vscode.Uri[] = [];
     for (let uri of uris) {
         await prnt(rgx.source);
-        if (!uri.fsPath.match(rgx)) { ret.push (uri)}
+        if (uri.fsPath.match(rgx) == null) { ret.push(uri) }
     }
     return ret;
 }
+
 export function msg_rank_2_strn(rank: rank_msg): string {
     let label = "info";
     switch (rank) {
@@ -147,4 +158,7 @@ export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
         await prnt("msg mode: " + String(err), rank_msg.err);
         return false;
     }
+}
+class exclude_uris {
+    static v: vscode.Uri[] = []
 }
