@@ -1,10 +1,18 @@
 import * as vscode from 'vscode';
-import { uri_to_file_of_opts } from './init';
+import { uri_to_file_of_opts, msg_opt } from './init';
+import { rank_msg } from './faav';
 class set_cmd_type {
     static v: string = "rgx";
 }
-export function prnt(msg: string) {
-    console_msg.show(msg);
+export async function prnt(msg: string, rank?: rank_msg) {
+    if (! await msg_mode(rank ?? "info")) { return }
+    let label = "[msg.info]";
+    switch (rank) {
+        case rank_msg.dbg: { label = "[msg.dbg]"; break; }
+        case rank_msg.err: { label = "[msg.err]"; break; }
+        case rank_msg.warn: { label = "[msg.warn]"; break; }
+    }
+    console_msg.show(label + ": " + msg);
 }
 export class console_msg {
     static #outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
@@ -106,7 +114,7 @@ export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] | 
         }
         return ret.length == 0? uris: ret;
     } catch (err) {
-        prnt(String(err))
+        prnt("exclude path: " + String(err), rank_msg.err);
         return
     }
 }
@@ -117,4 +125,26 @@ function exclude_path(uris: vscode.Uri[], rgx: RegExp): vscode.Uri[] {
         if (!uri.fsPath.match(rgx)) { ret.push (uri)}
     }
     return ret;
+}
+export function msg_rank_2_strn(rank: rank_msg): string {
+    let label = "info";
+    switch (rank) {
+        case rank_msg.dbg: { label = "[msg.dbg]"; break; }
+        case rank_msg.err: { label = "[msg.err]"; break; }
+        case rank_msg.warn: { label = "[msg.warn]"; break; }
+    }
+    return label;
+}
+export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
+    let mode = typeof rank == "string" ? rank : msg_rank_2_strn(rank);
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        if (msg_opt("all").test(txt)) { return true; }
+        if (msg_opt(mode).test(txt)) { return true; }
+        return false;
+    } catch (err) {
+        prnt("msg mode: " + String(err), rank_msg.err);
+        return false;
+    }
 }

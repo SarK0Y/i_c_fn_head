@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { i_c_fn_head_opts, langsName } from './faav';
+import { i_c_fn_head_opts, langsName, rank_msg } from './faav';
 import { langDefinitionProvider } from './goto_impl';
 import { activate0 as colors } from './colorful';
 import { ShowDocumentSymbols } from './show_doc_symbs'
@@ -28,7 +28,7 @@ export async function init(context: & vscode.ExtensionContext) {
       //  vscode.window.showInformationMessage(txt._0);
     }
     catch (err) {
-        prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )");
+        prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )", rank_msg.err);
         return;
      }
     regDefProvider(context);
@@ -36,6 +36,9 @@ export async function init(context: & vscode.ExtensionContext) {
 }
 function run_opt(key: string): RegExp {
     return new RegExp(`\\/\\/\\s*run\\s+${key}\\s*\\/\\/`);
+}
+export function msg_opt(key: string): RegExp {
+    return new RegExp(`\\/\\/\\s*msg\\.${key}\\s*\\/\\/`);
 }
 function set_lang(name: string, context?: vscode.ExtensionContext) {
     //vscode.window.showInformationMessage(txt._0);

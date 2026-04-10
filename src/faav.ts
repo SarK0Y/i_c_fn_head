@@ -49,3 +49,9 @@ export class _block_head {
         this.lnum = i;
     }
 }
+export enum rank_msg {
+    info,
+    warn,
+    err,
+    dbg
+}
