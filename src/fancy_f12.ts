@@ -17,12 +17,17 @@ export function new_pressF12(v?: F12_action): pressF12 {
     return { kind: "F12_action", v: ret };
 }
 export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | pressF12> {
-    let cmds: RegExp[] | null = set_placeholder0 ? await getCMD(set_placeholder0, null, "rgx") : await getCMD(null, null, "rgx"); 
-    let f12: pressF12 = new_pressF12();
-    if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
-    let more_rgxs = await handle_rgx_cmd(cmds);
-    if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
-    await prnt("failed to collect extra locations");
+    try {
+        let cmds: RegExp[] | null = set_placeholder0 ? await getCMD(set_placeholder0, null, "rgx") : await getCMD(null, null, "rgx");
+        let f12: pressF12 = new_pressF12();
+        if (cmds == null) { f12.v = F12_action.cont; return f12; }
+        let more_rgxs = await handle_rgx_cmd(cmds);
+        if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
+        await prnt("failed to collect extra locations");
+    
+    } catch (error) {
+        await prnt("handleExtraCMDs: " + String(error), rank_msg.err);
+    }
     return new_pressF12 (F12_action.cont);
 }
 async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
@@ -30,8 +35,9 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     let uris = await _a_get_files_in_workspace();
+    await prnt("uris number: " + uris.length, rank_msg.dbg);
     uris = await exclude_paths(uris) ?? uris;
-    await prnt("num of pruned uris: " + uris.length);
+    await prnt("num of pruned uris: " + uris.length, rank_msg.dbg);
     let uri: vscode.Uri;
     for (uri of uris) {
         try {
@@ -81,9 +87,9 @@ function cursorPos(): vscode.Position | null {
 export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
     let file_ext: vscode.GlobPattern = "";
     let uris: vscode.Uri[] = [];
-    if (langsName().file_exts.length > 0) {
-        for (let i = 0; i < langsName().file_exts.length; i++) {
-            file_ext = "**/*." + langsName().file_exts[i];
+    if ((await langsName()).file_exts.length > 0) {
+        for (let i = 0; i < (await langsName()).file_exts.length; i++) {
+            file_ext = "**/*." + (await langsName()).file_exts[i];
             await prnt('update file_ext ' + file_ext);
             let uri = await vscode.workspace.findFiles(
               //   '**/*.{langsName.file_exts}',
@@ -93,7 +99,6 @@ export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
             uris.push(...uri);
           }
         }
-    await prnt("calc uris " + uris.length);
     return uris;
 }
 /*

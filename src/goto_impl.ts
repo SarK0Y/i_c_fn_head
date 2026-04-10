@@ -17,15 +17,15 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     if (extra_locations.kind == "extra_locations") {
       results.push(...extra_locations.v);
     }
-    let file_ext: vscode.GlobPattern = "**/*." + langsName().file_exts[0];
+    let file_ext: vscode.GlobPattern = "**/*." + (await langsName()).file_exts[0];
     let uris = await vscode.workspace.findFiles(
       //"**/*.d",
       file_ext,
       restrict_search.exclude_paths, 
       restrict_search.max_num_of_res);
-    if (langsName().file_exts.length > 1) {
-      for (let i = 1; i < langsName().file_exts.length; i++) {
-        file_ext = "**/*." + langsName().file_exts[i];
+    if ((await langsName()).file_exts.length > 1) {
+      for (let i = 1; i < (await langsName()).file_exts.length; i++) {
+        file_ext = "**/*." + (await langsName()).file_exts[i];
         let uri = await vscode.workspace.findFiles(
           //   '**/*.{langsName.file_exts}',
             file_ext,

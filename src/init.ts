@@ -14,6 +14,7 @@ export async function uri_to_file_of_opts(): Promise <vscode.Uri[]> {
 export async function init(context: & vscode.ExtensionContext) {
    // if (!i_c_fn_head_opts.been_set) { return; }
     try {
+        await run_tsts7();
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);
         txt._0 = doc.getText();
@@ -84,4 +85,22 @@ function mkDocSel(): vscode.DocumentSelector {
     if (i_c_fn_head_opts.provide_lang_CPP) { sel.push({ scheme: 'file', language: 'cpp' }); }
     if (i_c_fn_head_opts.provide_lang_D) { sel.push({ scheme: 'file', language: 'D' }); }
     return sel
+}
+export async function run_tsts7(): Promise <void> {
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        let tst = /\/\/tests\/\//g;
+        if (tst.test(txt)) { 
+            await tests();
+        }
+    } catch (err) {
+        await prnt("run_tsts7: " + String(err), rank_msg.err);
+    }
+}
+async function tests() {
+    await prnt("tst err msg", rank_msg.err);
+    await prnt("tst warn msg", rank_msg.warn);
+    await prnt("tst dbg msg", rank_msg.dbg);
+    await prnt("tst info msg", rank_msg.info);
 }

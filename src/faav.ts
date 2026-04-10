@@ -1,8 +1,10 @@
 import { GlobPattern } from "vscode";
 import * as vsc from 'vscode';
 import { prnt } from "./basic_funx";
-export function langsName(): {name: string, file_exts: string []} {
+import * as path from "path";
+export async function langsName1(): Promise <{name: string, file_exts: string []}> {
     let langId = vsc.window.activeTextEditor?.document.languageId;
+    await prnt("langsName(): " + langId, rank_msg.dbg);
     if (langId == undefined) {
         return { name: "", file_exts: [] };
     }
@@ -14,6 +16,24 @@ export function langsName(): {name: string, file_exts: string []} {
         default: { return { name: "", file_exts: [] }; }
     }
 }
+export async function langsName(): Promise<{ name: string, file_exts: string[] }> {
+    const langId = path.extname(vsc.window.activeTextEditor?.document.uri.fsPath || '').slice(1);
+    let regex = /rs$|c$|cpp$|d$/g;
+    let lang: string = regex.exec(langId)?.[0] ?? "";
+    const msg = "Active lang: " + langId?.toString();
+    await prnt("langsName(): " + lang, rank_msg.dbg);
+    if (langId == undefined) {
+        return { name: "", file_exts: [] };
+    }
+    switch (lang) {
+        case "c": { return { name: "C", file_exts: ["c", "h"] }; }
+        case "d": { return { name: "D", file_exts: ["d"] }; }
+        case "rs": { return { name: "Rust", file_exts: ["rs"] }; }
+        case "cpp": { return { name: "CPP", file_exts: ["cpp", "hpp", "h"] }; }
+        default: { return { name: "", file_exts: [] }; }
+    }
+}
+
 export class restrict_search {
     static max_num_of_res: number = 2000;
     static exclude_paths: GlobPattern | null | undefined = "**/(tests|build)/**";
