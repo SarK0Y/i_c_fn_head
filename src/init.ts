@@ -28,7 +28,7 @@ export async function init(context: & vscode.ExtensionContext) {
       //  vscode.window.showInformationMessage(txt._0);
     }
     catch (err) {
-        prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )", rank_msg.err);
+        await prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )", rank_msg.err);
         return;
      }
     regDefProvider(context);

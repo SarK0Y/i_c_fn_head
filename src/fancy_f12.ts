@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import {  } from './faav';
+import { rank_msg } from './faav';
 import { prnt, cmd_rgx, getCMD, exclude_paths } from './basic_funx';
 import { langsName, restrict_search } from './faav';
 export enum F12_action {
@@ -17,27 +17,27 @@ export function new_pressF12(v?: F12_action): pressF12 {
     return { kind: "F12_action", v: ret };
 }
 export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | pressF12> {
-    let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0, null, "rgx") : getCMD(null, null, "rgx"); 
+    let cmds: RegExp[] | null = set_placeholder0 ? await getCMD(set_placeholder0, null, "rgx") : await getCMD(null, null, "rgx"); 
     let f12: pressF12 = new_pressF12();
     if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
     let more_rgxs = await handle_rgx_cmd(cmds);
     if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
-    prnt("failed to collect extra locations");
+    await prnt("failed to collect extra locations");
     return new_pressF12 (F12_action.cont);
 }
 async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
-    prnt("start handle_rgx_cmd");
+    await prnt("start handle_rgx_cmd");
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     let uris = await _a_get_files_in_workspace();
     uris = await exclude_paths(uris) ?? uris;
-    prnt("num of pruned uris: " + uris.length);
+    await prnt("num of pruned uris: " + uris.length);
     let uri: vscode.Uri;
     for (uri of uris) {
         try {
             let doc = await vscode.workspace.openTextDocument(uri);
             if (doc == undefined) {
-                prnt("failed to open " + uri);
+              await prnt("failed to open " + uri);
                 continue;
             }
             let txt = doc.getText();
@@ -47,7 +47,7 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
                 res.push(...calc_locations(matches, doc));
             }
         } catch (error) {
-            prnt("doc: " + uri.fsPath + "err " + String (error));
+            await prnt("doc: " + uri.fsPath + "err " + String (error), rank_msg.err);
         }
     }
     return res;
@@ -84,7 +84,7 @@ export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
     if (langsName().file_exts.length > 0) {
         for (let i = 0; i < langsName().file_exts.length; i++) {
             file_ext = "**/*." + langsName().file_exts[i];
-            prnt('update file_ext ' + file_ext);
+            await prnt('update file_ext ' + file_ext);
             let uri = await vscode.workspace.findFiles(
               //   '**/*.{langsName.file_exts}',
                 file_ext,
@@ -93,7 +93,7 @@ export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
             uris.push(...uri);
           }
         }
-    prnt("calc uris " + uris.length);
+    await prnt("calc uris " + uris.length);
     return uris;
 }
 /*
