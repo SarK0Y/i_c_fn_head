@@ -105,15 +105,39 @@ async function tests() {
     await prnt("tst dbg msg", rank_msg.dbg);
     await prnt("tst info msg", rank_msg.info);
 }
-export async function include_subdirs(): Promise<void> {
+export async function include_subdirs(): Promise<string[]> {
     try {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
-        let tst: string = "//\s*" + cmd_rgx.open_rgx + "\s*" + "([a-zA-Z/_\.0-9\-]+)" + "\s*" + cmd_rgx + "//";
+        prnt("include_subdirs: " + txt, rank_msg.dbg);
+        let tst: string = "//include_subdirs:\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
         let rgx = RegExp(tst, "g");
+        prnt("include_subdirs: " + rgx.source, rank_msg.dbg);
         let collect_includes = txt.matchAll(rgx);
-        let ret: string [] = []
+        let ret: string[] = [];
+        for (let m of collect_includes) {
+            prnt("include_subdirs: " + m[1], rank_msg.dbg);
+            ret.push(m[1]);
+        }
+        return ret;
     } catch (err) {
-        await prnt("run_tsts7: " + String(err), rank_msg.err);
+        await prnt("include_subdirs: " + String(err), rank_msg.err);
     }
+    return []
+}
+export async function collect_subdirs(): Promise <vscode.Uri[]> {
+    let paths = await include_subdirs();
+    let ret: vscode.Uri[] = [];
+    for (let p of paths) {
+        let find = await vscode.workspace.findFiles(
+            new vscode.RelativePattern(vscode.Uri.file(p), '**/*'),
+            "" /* exclude none path */
+             /* only one result */
+        );
+        if (find) {
+            prnt("collect_subdirs: " +find.toString(), rank_msg.dbg);
+            ret.push (...find)
+        }
+    }
+    return ret;
 }

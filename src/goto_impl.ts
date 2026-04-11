@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { langsName, restrict_search } from './faav'
-import { handleExtraCMDs, pressF12, EL } from './fancy_f12';
+import { handleExtraCMDs, pressF12, EL, _a_get_files_in_workspace } from './fancy_f12';
 import { prnt, getCMD, exclude_uris } from './basic_funx';
 import { uri_to_file_of_opts, msg_opt } from './init';
 export class langDefinitionProvider implements vscode.DefinitionProvider {
@@ -27,12 +27,12 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     }
     let file_exts = (await langsName()).file_exts;
     let file_ext: vscode.GlobPattern = "**/*." + file_exts[0];
-    let uris = await vscode.workspace.findFiles(
-      //"**/*.d",
+    /*let uris = await vscode.workspace.findFiles(
       file_ext,
       restrict_search.exclude_paths, 
-      restrict_search.max_num_of_res);
-    if (file_exts.length > 1) {
+      restrict_search.max_num_of_res); */
+    let uris = await _a_get_files_in_workspace()
+    if (file_exts.length > 1 && uris.length > 0) {
       for (let i = 1; i < file_exts.length; i++) {
         file_ext = "**/*." + file_exts[i];
         let uri = await vscode.workspace.findFiles(
