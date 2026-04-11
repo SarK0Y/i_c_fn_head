@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { langsName, restrict_search } from './faav'
 import { handleExtraCMDs, pressF12, EL, _a_get_files_in_workspace } from './fancy_f12';
 import { prnt, getCMD, exclude_uris } from './basic_funx';
-import { uri_to_file_of_opts, msg_opt } from './init';
+import { msg_opt } from './init';
+import { uri_to_file_of_opts } from './fs_stuff';
 export class langDefinitionProvider implements vscode.DefinitionProvider {
   async provideDefinition(
     document: vscode.TextDocument,

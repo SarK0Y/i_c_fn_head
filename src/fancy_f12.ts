@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import { rank_msg } from './faav';
 import { prnt, cmd_rgx, getCMD, exclude_paths , exclude_uris} from './basic_funx';
 import { langsName, restrict_search } from './faav';
-import { uri_to_file_of_opts, collect_subdirs } from './init';
+import { uri_to_file_of_opts, collect_subdirs } from './fs_stuff';
 export enum F12_action {
     cont,
     stop
