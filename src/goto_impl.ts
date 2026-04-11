@@ -1,13 +1,21 @@
 import * as vscode from 'vscode';
 import { langsName, restrict_search } from './faav'
 import { handleExtraCMDs, pressF12, EL } from './fancy_f12';
-import { prnt } from './basic_funx';
+import { prnt, getCMD, exclude_uris } from './basic_funx';
+import { uri_to_file_of_opts, msg_opt } from './init';
 export class langDefinitionProvider implements vscode.DefinitionProvider {
   async provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
     token: vscode.CancellationToken
   ): Promise<vscode.Location[]> {
+    const file_of_opts = await uri_to_file_of_opts();
+    const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+    restrict_search.exclude_paths = "**/(" + (await getCMD(
+        null,
+        txt,
+       "exclude_path"
+    ))?.[0].source + ")/*";
     const wordRange = document.getWordRangeAtPosition(position, /[\w$@_]+/);
     //if (!wordRange) return [];
     let word = document.getText(wordRange);

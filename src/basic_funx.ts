@@ -5,7 +5,7 @@ class set_cmd_type {
     static v: string = "rgx";
 }
 export async function prnt(msg: string, rank?: rank_msg) {
-    if (! await msg_mode(rank ?? "info")) { return }
+    if ( (await msg_mode(rank ?? "info")) == false) { return }
     let label = "[msg.info]";
     switch (rank) {
         case rank_msg.dbg: { label = "[msg.dbg]"; break; }
@@ -148,8 +148,17 @@ export function msg_rank_2_strn(rank: rank_msg): string {
     }
     return label;
 }
+export function _msg_rank_2_strn(rank: rank_msg): string {
+    let label = "info";
+    switch (rank) {
+        case rank_msg.dbg: { label = "dbg"; break; }
+        case rank_msg.err: { label = "err"; break; }
+        case rank_msg.warn: { label = "warn]"; break; }
+    }
+    return label;
+}
 export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
-    let mode = typeof rank == "string" ? rank : msg_rank_2_strn(rank);
+    let mode = typeof rank == "string" ? rank : _msg_rank_2_strn(rank);
     try {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();

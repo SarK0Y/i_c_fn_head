@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { i_c_fn_head_opts, langsName, rank_msg } from './faav';
+import { cmd_rgx } from './basic_funx';
 import { langDefinitionProvider } from './goto_impl';
 import { activate0 as colors } from './colorful';
 import { ShowDocumentSymbols } from './show_doc_symbs'
@@ -103,4 +104,16 @@ async function tests() {
     await prnt("tst warn msg", rank_msg.warn);
     await prnt("tst dbg msg", rank_msg.dbg);
     await prnt("tst info msg", rank_msg.info);
+}
+export async function include_subdirs(): Promise<void> {
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        let tst: string = "//\s*" + cmd_rgx.open_rgx + "\s*" + "([a-zA-Z/_\.0-9\-]+)" + "\s*" + cmd_rgx + "//";
+        let rgx = RegExp(tst, "g");
+        let collect_includes = txt.matchAll(rgx);
+        let ret: string [] = []
+    } catch (err) {
+        await prnt("run_tsts7: " + String(err), rank_msg.err);
+    }
 }
