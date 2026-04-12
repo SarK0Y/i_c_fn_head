@@ -1,9 +1,10 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs"
-
-import { rank_msg } from "./faav";
-import { cmd_rgx, prnt } from "./basic_funx";
+import { lockAsync, rank_msg } from "./faav";
+import { cmd_rgx, prnt} from "./basic_funx";
+import { promisify } from "util";
+const _readdir = promisify(fs.readdir);
 export async function include_subdirs(): Promise<string[]> {
     try {
         const file_of_opts = await uri_to_file_of_opts();
@@ -74,25 +75,19 @@ export async function collect_dirs(paths: string[]): Promise<vscode.Uri[]> {
     }
     return ret
 }
-export async function include_dir(dir: string): Promise<vscode.Uri[]> {
+export async function include_dir(dir: string): Promise <vscode.Uri[]> {
     let ret: vscode.Uri[] = []
-    fs.readdir(dir, { withFileTypes: true }, (err, files) => {
-        if (err) {
-            prnt("include_dir: " + String(err), rank_msg.dbg);
-            return [];
-        }
-        let len = files
-            .filter(e => e.isFile()).length
-        prnt("include_dir: " + len, rank_msg.dbg);
-        let x = files
+    let lock = new lockAsync();
+    try {
+        const entries = await _readdir(dir, { withFileTypes: true }) as fs.Dirent[];
+        let x = entries
             .filter(e => e.isFile())
             .map(e => vscode.Uri.file(path.join(dir, e.name)));
         ret.push(...x);
-        for (let file of ret) {
-            prnt("include_dir: " + file.fsPath, rank_msg.dbg);
-        }
-        return ret;
-    });
+    } catch (err) {
+        prnt("include_dir: " + String(err), rank_msg.err);
+        return [];
+    }
     prnt("include_dir: " + "ret len: " + ret.length, rank_msg.dbg);
     return ret;
 }

@@ -92,6 +92,7 @@ export async function _a_get_files_in_workspace(): Promise<vscode.Uri[]> {
     prnt("pre_ret: " + pre_ret.length, rank_msg.dbg)
     let _collect_subdirs = await collect_subdirs();
     if (_collect_subdirs.length > 0) { pre_ret.push(..._collect_subdirs); }
+    pre_ret = Array.from(new Set(pre_ret));
     if (pre_ret.length > 0) { return pre_ret; }
     const file_of_opts = await uri_to_file_of_opts();
     const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();

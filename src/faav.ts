@@ -76,3 +76,6 @@ export enum rank_msg {
     err,
     dbg
 }
+export class lockAsync {
+    lock: boolean = true
+}

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { uri_to_file_of_opts } from './fs_stuff';
 import { msg_opt } from './init';
-import { rank_msg } from './faav';
+import { lockAsync, rank_msg } from './faav';
 class set_cmd_type {
     static v: string = "rgx";
 }
