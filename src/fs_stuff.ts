@@ -40,18 +40,60 @@ export async function collect_subdirs(): Promise<vscode.Uri[]> {
     }
     return ret;
 }
-export async function listNonRecursive(dir: string): Promise<vscode.Uri[]> {
+export async function include_dirs(): Promise<vscode.Uri[]> {
+    let fn_name = "include_dirs";
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        prnt(fn_name + ": " + txt, rank_msg.dbg);
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length - 1) +":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let rgx = RegExp(tst, "g");
+        prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
+        let collect_includes = txt.matchAll(rgx);
+        let paths: string[] = [];
+        for (let m of collect_includes) {
+            prnt(fn_name + ": " + m[1], rank_msg.dbg);
+            paths.push(m[1]);
+        }
+        return collect_dirs (paths);
+    } catch (err) {
+        await prnt(fn_name + ": " + String(err), rank_msg.err);
+    }
+    return []
+}
+export async function collect_dirs(paths: string[]): Promise<vscode.Uri[]> {
+    let ret: vscode.Uri[] = []
+    let uris: vscode.Uri[] = []
+    for (let p of paths) {
+        prnt("collect_dirs: " + p, rank_msg.dbg);
+        uris.push(...await include_dir(p));
+        prnt("collect_dirs: " + uris.length, rank_msg.dbg);
+        if (uris.length > 0) {
+            ret.push(...uris);
+        }
+    }
+    return ret
+}
+export async function include_dir(dir: string): Promise<vscode.Uri[]> {
     let ret: vscode.Uri[] = []
     fs.readdir(dir, { withFileTypes: true }, (err, files) => {
         if (err) {
-            prnt("listNonRecursive: " + String(err), rank_msg.dbg);
+            prnt("include_dir: " + String(err), rank_msg.dbg);
             return [];
         }
-        ret.push(...files
+        let len = files
+            .filter(e => e.isFile()).length
+        prnt("include_dir: " + len, rank_msg.dbg);
+        let x = files
             .filter(e => e.isFile())
-            .map(e => vscode.Uri.file(path.join(dir, e.name)))
-        );
+            .map(e => vscode.Uri.file(path.join(dir, e.name)));
+        ret.push(...x);
+        for (let file of ret) {
+            prnt("include_dir: " + file.fsPath, rank_msg.dbg);
+        }
+        return ret;
     });
+    prnt("include_dir: " + "ret len: " + ret.length, rank_msg.dbg);
     return ret;
 }
 export async function uri_to_file_of_opts(): Promise <vscode.Uri[]> {

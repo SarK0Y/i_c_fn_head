@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import { rank_msg } from './faav';
 import { prnt, cmd_rgx, getCMD, exclude_paths , exclude_uris} from './basic_funx';
 import { langsName, restrict_search } from './faav';
-import { uri_to_file_of_opts, collect_subdirs } from './fs_stuff';
+import { uri_to_file_of_opts, collect_subdirs, include_dirs } from './fs_stuff';
 export enum F12_action {
     cont,
     stop
@@ -86,8 +86,13 @@ function cursorPos(): vscode.Position | null {
     return pos; 
 }
 export async function _a_get_files_in_workspace(): Promise<vscode.Uri[]> {
+    let pre_ret: vscode.Uri[] = [];
+    let _include_dirs = await include_dirs();
+    if (_include_dirs.length > 0) { pre_ret.push(..._include_dirs); }
+    prnt("pre_ret: " + pre_ret.length, rank_msg.dbg)
     let _collect_subdirs = await collect_subdirs();
-    if (_collect_subdirs.length > 0) { return _collect_subdirs; }
+    if (_collect_subdirs.length > 0) { pre_ret.push(..._collect_subdirs); }
+    if (pre_ret.length > 0) { return pre_ret; }
     const file_of_opts = await uri_to_file_of_opts();
     const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
     restrict_search.exclude_paths = "**/(" + (await getCMD(
