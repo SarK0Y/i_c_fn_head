@@ -1,10 +1,19 @@
 import * as vscode from 'vscode';
-import { uri_to_file_of_opts } from './init';
+import { uri_to_file_of_opts } from './fs_stuff';
+import { msg_opt } from './init';
+import { lockAsync, rank_msg } from './faav';
 class set_cmd_type {
     static v: string = "rgx";
 }
-export function prnt(msg: string) {
-    console_msg.show(msg);
+export async function prnt(msg: string, rank?: rank_msg) {
+    if ( (await msg_mode(rank ?? "info")) == false) { return }
+    let label = "[msg.info]";
+    switch (rank) {
+        case rank_msg.dbg: { label = "[msg.dbg]"; break; }
+        case rank_msg.err: { label = "[msg.err]"; break; }
+        case rank_msg.warn: { label = "[msg.warn]"; break; }
+    }
+    console_msg.show(label + ": " + msg);
 }
 export class console_msg {
     static #outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
@@ -13,14 +22,14 @@ export class console_msg {
         this.#outputChannel.show();
     }
 }
-export function getCMD(set_placeholder0?: string | null, _txt?: string | undefined | null,  cmd_type?: string): RegExp[] | null {
+export async function getCMD(set_placeholder0?: string | null, _txt?: string | undefined | null,  cmd_type?: string): Promise< RegExp[] | null> {
     const txt = _txt ? _txt : vscode.window.activeTextEditor?.document.getText();
     set_cmd_type.v = cmd_type ? cmd_type : set_cmd_type.v;
     cmd_rgx.set_collect_rgx_from_doc();
     if (txt == undefined) { return null}
-    const ret = set_placeholder0 ? cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : cmd_rgx._collect_rgx_from_doc(txt); 
+    const ret = set_placeholder0 ? await cmd_rgx._collect_rgx_from_doc(txt, set_placeholder0) : await cmd_rgx._collect_rgx_from_doc(txt); 
     let phldr = set_placeholder0 ? set_placeholder0 : "no phldr";
-    prnt("calc num of cmds: " + ret.length.toString());
+    await prnt("calc num of cmds: " + ret.length.toString());
    // prnt (ewt)
     return ret;
 }
@@ -30,57 +39,57 @@ export class cmd_rgx {
     static placeholder0_max_len: number = 200;
     static open_rgx: string = "/";
     static close_rgx: string = ":::";
-    static set_collect_rgx_from_doc(
+    static async set_collect_rgx_from_doc(
         open_rgx?: string,
         close_rgx?: string,
-    ): RegExp {
+    ): Promise <RegExp> {
         this.open_rgx = open_rgx ?? this.open_rgx;
         this.close_rgx = close_rgx ?? this.close_rgx;
         let cmd_type = set_cmd_type.v ?? "rgx";
         let construct_rgx: string = "//\\s*" + cmd_type + ":\\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\\s*//";
         this.collect_rgx_from_doc = new RegExp(construct_rgx, "g");
-        prnt("set_collect_rgx_from_doc: "+this.collect_rgx_from_doc.source);
+        await prnt("set_collect_rgx_from_doc: "+this.collect_rgx_from_doc.source);
         return this.collect_rgx_from_doc;
     }
-    static _collect_rgx_from_doc(txt: string, set_placeholder0?: string): RegExp[] {
+    static async _collect_rgx_from_doc(txt: string, set_placeholder0?: string): Promise <RegExp[]> {
         if (set_placeholder0) { return this._collect_rgx_from_doc0(txt, set_placeholder0) }
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
         while ((m = this.collect_rgx_from_doc.exec(txt)) != null) {
-            let try_it = this.strn_2_rgx(m[1]);
+            let try_it = await this.strn_2_rgx(m[1]);
             if (try_it == null) {
-                prnt("_collect_rgx_from_doc: try_it is null");
+                await prnt("_collect_rgx_from_doc: try_it is null");
                 break
             }
-            prnt("_collect_rgx_from_doc:" + m[1]);
+            await prnt("_collect_rgx_from_doc:" + m[1]);
             ret.push(try_it);
         }
         return ret;
     }
-    static _collect_rgx_from_doc0(txt: string, set_placeholder0: string): RegExp[] {
+    static async _collect_rgx_from_doc0(txt: string, set_placeholder0: string): Promise <RegExp[]> {
         let m: RegExpExecArray | null;
         let ret: RegExp[] = [];
         while ((m = this.collect_rgx_from_doc.exec(txt)) != null) {
             let _m = m[1].replaceAll(this.placeholder0, set_placeholder0);
-            let try_it = this.strn_2_rgx(_m);
-            prnt("1st class cmd_rgx");
+            let try_it = await this.strn_2_rgx(_m);
+            await prnt("1st class cmd_rgx");
             if (try_it == null) {
-                prnt("_collect_rgx_from_doc: try_it is null");
+                await prnt("_collect_rgx_from_doc: try_it is null");
                 break
             }
-            prnt("_collect_rgx_from_doc:" + m[1]);
+            await prnt("_collect_rgx_from_doc:" + m[1]);
             ret.push(try_it);
         }
         return ret;
     }
-    static strn_2_rgx(strn: string): RegExp | null {
+    static async strn_2_rgx(strn: string): Promise <RegExp | null> {
         let check_end_of_rgx = this.close_rgx + "[gmis]*$";
         let flags = strn.match(new RegExp(check_end_of_rgx));
         let _flags = flags != null ? flags[0].slice(this.close_rgx.length) : "";
         let regex = strn.slice(1).replaceAll(this.close_rgx + _flags, "");
         try {
             let ret = new RegExp(regex, _flags);
-            prnt("strn to rgx: " + ret.source + " " + ret.flags);
+            await prnt("strn to rgx: " + ret.source + " " + ret.flags);
             return ret;
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
@@ -91,30 +100,78 @@ export class cmd_rgx {
 }
 export async function exclude_paths(uris: vscode.Uri[]): Promise<vscode.Uri[] |  undefined> {
     try {
-        let ret: vscode.Uri[] = [];    
+        exclude_uris.v = uris;
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(txt);
-        let exclude_paths0 = getCMD(
+        let exclude_paths0 = await getCMD(
             null,
             txt,
             "exclude_path"
         );
         if (exclude_paths0 == null) { return; }
         for (let exc of exclude_paths0) {
-            ret = exclude_path(uris, exc);
+            await exclude_path(exc);
         }
-        return ret.length == 0? uris: ret;
+        return exclude_uris.v;
     } catch (err) {
-        prnt(String(err))
+        await prnt("exclude path: " + String(err), rank_msg.err);
         return
     }
 }
-function exclude_path(uris: vscode.Uri[], rgx: RegExp): vscode.Uri[] {
+async function exclude_path(rgx: RegExp): Promise <void> {
+    
+    for (let i = 0; i < exclude_uris.v.length; i++) {
+        await prnt(rgx.source);
+        exclude_uris.s[i] = exclude_uris.v[i].fsPath.trim();
+        if (exclude_uris.s[i].match(rgx) != null) {
+            await prnt(exclude_uris.s[i]);
+            exclude_uris.s.splice(i, 1)
+            exclude_uris.v.splice(i, 1)
+        }
+    }
+}
+async function exclude_path1(uris: vscode.Uri[], rgx: RegExp): Promise<vscode.Uri[]> {
     let ret: vscode.Uri[] = [];
     for (let uri of uris) {
-        prnt(rgx.source);
-        if (!uri.fsPath.match(rgx)) { ret.push (uri)}
+        await prnt(rgx.source);
+        if (uri.fsPath.match(rgx) == null) { ret.push(uri) }
     }
     return ret;
+}
+
+export function msg_rank_2_strn(rank: rank_msg): string {
+    let label = "info";
+    switch (rank) {
+        case rank_msg.dbg: { label = "[msg.dbg]"; break; }
+        case rank_msg.err: { label = "[msg.err]"; break; }
+        case rank_msg.warn: { label = "[msg.warn]"; break; }
+    }
+    return label;
+}
+export function _msg_rank_2_strn(rank: rank_msg): string {
+    let label = "info";
+    switch (rank) {
+        case rank_msg.dbg: { label = "dbg"; break; }
+        case rank_msg.err: { label = "err"; break; }
+        case rank_msg.warn: { label = "warn]"; break; }
+    }
+    return label;
+}
+export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
+    let mode = typeof rank == "string" ? rank : _msg_rank_2_strn(rank);
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        if (msg_opt("all").test(txt)) { return true; }
+        if (msg_opt(mode).test(txt)) { return true; }
+        return false;
+    } catch (err) {
+        await prnt("msg mode: " + String(err), rank_msg.err);
+        return false;
+    }
+}
+export class exclude_uris {
+    static v: vscode.Uri[] = []
+    static s: string[] = []
 }

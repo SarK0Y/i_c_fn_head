@@ -1,19 +1,16 @@
 import * as vscode from 'vscode';
-import { i_c_fn_head_opts, langsName } from './faav';
+import { i_c_fn_head_opts, langsName, rank_msg } from './faav';
+import { cmd_rgx } from './basic_funx';
 import { langDefinitionProvider } from './goto_impl';
 import { activate0 as colors } from './colorful';
 import { ShowDocumentSymbols } from './show_doc_symbs'
 import { getCMD, prnt } from './basic_funx';
-export async function uri_to_file_of_opts(): Promise <vscode.Uri[]> {
-    return vscode.workspace.findFiles(
-        '**/i_c_fn_head.opts',
-        "", /* exclude none path */
-        1 /* only one result */
-    );
-}
+import { uri_to_file_of_opts } from './fs_stuff';
+
 export async function init(context: & vscode.ExtensionContext) {
    // if (!i_c_fn_head_opts.been_set) { return; }
     try {
+        await run_tsts7();
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);
         txt._0 = doc.getText();
@@ -28,7 +25,7 @@ export async function init(context: & vscode.ExtensionContext) {
       //  vscode.window.showInformationMessage(txt._0);
     }
     catch (err) {
-        prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )");
+        await prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )", rank_msg.err);
         return;
      }
     regDefProvider(context);
@@ -36,6 +33,9 @@ export async function init(context: & vscode.ExtensionContext) {
 }
 function run_opt(key: string): RegExp {
     return new RegExp(`\\/\\/\\s*run\\s+${key}\\s*\\/\\/`);
+}
+export function msg_opt(key: string): RegExp {
+    return new RegExp(`\\/\\/\\s*msg\\.${key}\\s*\\/\\/`);
 }
 function set_lang(name: string, context?: vscode.ExtensionContext) {
     //vscode.window.showInformationMessage(txt._0);
@@ -81,4 +81,22 @@ function mkDocSel(): vscode.DocumentSelector {
     if (i_c_fn_head_opts.provide_lang_CPP) { sel.push({ scheme: 'file', language: 'cpp' }); }
     if (i_c_fn_head_opts.provide_lang_D) { sel.push({ scheme: 'file', language: 'D' }); }
     return sel
+}
+export async function run_tsts7(): Promise <void> {
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        let tst = /\/\/tests\/\//g;
+        if (tst.test(txt)) { 
+            await tests();
+        }
+    } catch (err) {
+        await prnt("run_tsts7: " + String(err), rank_msg.err);
+    }
+}
+async function tests() {
+    await prnt("tst err msg", rank_msg.err);
+    await prnt("tst warn msg", rank_msg.warn);
+    await prnt("tst dbg msg", rank_msg.dbg);
+    await prnt("tst info msg", rank_msg.info);
 }

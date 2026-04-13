@@ -1,7 +1,8 @@
 import * as vscode from 'vscode'
-import {  } from './faav';
-import { prnt, cmd_rgx, getCMD, exclude_paths } from './basic_funx';
+import { rank_msg } from './faav';
+import { prnt, cmd_rgx, getCMD, exclude_paths , exclude_uris} from './basic_funx';
 import { langsName, restrict_search } from './faav';
+import { uri_to_file_of_opts, collect_subdirs, include_dirs } from './fs_stuff';
 export enum F12_action {
     cont,
     stop
@@ -17,27 +18,32 @@ export function new_pressF12(v?: F12_action): pressF12 {
     return { kind: "F12_action", v: ret };
 }
 export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | pressF12> {
-    let cmds: RegExp[] | null = set_placeholder0 ? getCMD(set_placeholder0, null, "rgx") : getCMD(null, null, "rgx"); 
-    let f12: pressF12 = new_pressF12();
-    if (cmds == null) { f12.v = F12_action.cont;  return f12 ; }
-    let more_rgxs = await handle_rgx_cmd(cmds);
-    if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
-    prnt("failed to collect extra locations");
+    try {
+        let cmds: RegExp[] | null = set_placeholder0 ? await getCMD(set_placeholder0, null, "rgx") : await getCMD(null, null, "rgx");
+        let f12: pressF12 = new_pressF12();
+        if (cmds == null) { f12.v = F12_action.cont; return f12; }
+        let more_rgxs = await handle_rgx_cmd(cmds);
+        if (more_rgxs.length > 0) { return new_EL(more_rgxs); }
+        await prnt("failed to collect extra locations");
+    
+    } catch (error) {
+        await prnt("handleExtraCMDs: " + String(error), rank_msg.err);
+    }
     return new_pressF12 (F12_action.cont);
 }
 async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
-    prnt("start handle_rgx_cmd");
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
-    let uris = await _a_get_files_in_workspace();
-    uris = await exclude_paths(uris) ?? uris;
-    prnt("num of pruned uris: " + uris.length);
+    exclude_uris.v = await _a_get_files_in_workspace();
+    await prnt("uris number: " + exclude_uris.v.length, rank_msg.dbg);
+    await exclude_paths(exclude_uris.v);
+    await prnt("num of pruned uris: " + exclude_uris.v.length, rank_msg.dbg);
     let uri: vscode.Uri;
-    for (uri of uris) {
+    for (uri of exclude_uris.v) {
         try {
             let doc = await vscode.workspace.openTextDocument(uri);
             if (doc == undefined) {
-                prnt("failed to open " + uri);
+              await prnt("failed to open " + uri);
                 continue;
             }
             let txt = doc.getText();
@@ -47,7 +53,7 @@ async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
                 res.push(...calc_locations(matches, doc));
             }
         } catch (error) {
-            prnt("doc: " + uri.fsPath + "err " + String (error));
+            await prnt("doc: " + uri.fsPath + "err " + String (error), rank_msg.err);
         }
     }
     return res;
@@ -78,22 +84,38 @@ function cursorPos(): vscode.Position | null {
     // const col = pos.character;
     return pos; 
 }
-export async function _a_get_files_in_workspace(): Promise <vscode.Uri[]> {
+export async function _a_get_files_in_workspace(): Promise<vscode.Uri[]> {
+    let pre_ret: vscode.Uri[] = [];
+    let _include_dirs = await include_dirs();
+    if (_include_dirs.length > 0) { pre_ret.push(..._include_dirs); }
+    prnt("pre_ret: " + pre_ret.length, rank_msg.dbg)
+    let _collect_subdirs = await collect_subdirs();
+    if (_collect_subdirs.length > 0) { pre_ret.push(..._collect_subdirs); }
+    pre_ret = Array.from(new Set(pre_ret));
+    if (pre_ret.length > 0) { return pre_ret; }
+    const file_of_opts = await uri_to_file_of_opts();
+    const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+    restrict_search.exclude_paths = "**/(" + (await getCMD(
+        null,
+        txt,
+        "exclude_path"
+    ))?.[0].source + ")/*";
+    
     let file_ext: vscode.GlobPattern = "";
     let uris: vscode.Uri[] = [];
-    if (langsName().file_exts.length > 0) {
-        for (let i = 0; i < langsName().file_exts.length; i++) {
-            file_ext = "**/*." + langsName().file_exts[i];
-            prnt('update file_ext ' + file_ext);
+    let file_exts = (await langsName()).file_exts;
+    if (file_exts.length > 0) {
+        for (let i = 0; i < file_exts.length; i++) {
+            file_ext = "**/*." + file_exts[i];
+            await prnt('update file_ext ' + file_ext);
             let uri = await vscode.workspace.findFiles(
               //   '**/*.{langsName.file_exts}',
                 file_ext,
-                restrict_search.exclude_paths,
+               "", //restrict_search.exclude_paths,
                 restrict_search.max_num_of_res);
             uris.push(...uri);
           }
         }
-    prnt("calc uris " + uris.length);
     return uris;
 }
 /*
