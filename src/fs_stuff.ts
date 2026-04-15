@@ -98,3 +98,17 @@ export async function uri_to_file_of_opts(): Promise <vscode.Uri[]> {
         1 /* only one result */
     );
 }
+/*
+import { readdir } from "fs";
+
+export function include_dir(dir: string): Promise<vscode.Uri[]> {
+  return new Promise(resolve => {
+    readdir(dir, { withFileTypes: true }, (err, files) => {
+      if (err) { resolve([]); return; }
+      const filesUris = files.filter(e=>e.isFile()).map(e=>vscode.Uri.file(path.join(dir, e.name)));
+      resolve(filesUris);
+    });
+  });
+}
+
+ */

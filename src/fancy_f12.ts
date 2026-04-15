@@ -32,7 +32,6 @@ export async function handleExtraCMDs(set_placeholder0?: string): Promise <EL | 
     return new_pressF12 (F12_action.cont);
 }
 async function handle_rgx_cmd(cmds: RegExp[]): Promise <vscode.Location[]> {
-    await prnt("start handle_rgx_cmd");
     const res: vscode.Location[] = [];
     let matches: RegExpStringIterator<RegExpExecArray> | null;
     exclude_uris.v = await _a_get_files_in_workspace();
