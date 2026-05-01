@@ -176,3 +176,22 @@ export function deactivate() {
         return client.stop();
     }
 }
+/*
+{
+    "contributes": {
+        "commands": [
+            {
+                "command": "custom.sendRequest",
+                "title": "Custom: Send Request to Server"
+            },
+            {
+                "command": "custom.sendNotification",
+                "title": "Custom: Send Notification to Server"
+            }
+        ]
+    },
+    "activationEvents": [
+        "onLanguage:java"
+    ]
+}
+*/
