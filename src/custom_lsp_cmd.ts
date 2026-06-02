@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { Jar} from './fs_stuff'
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -66,7 +67,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Server configuration
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-jar', context.asAbsolutePath('out/java-lsp-server.jar')]
+        args: ['-jar', context.asAbsolutePath( await Jar () )]
     };
 
     const clientOptions: LanguageClientOptions = {

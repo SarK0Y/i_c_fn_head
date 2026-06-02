@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { JavaHome, Jar } from './fs_stuff';
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -11,7 +12,7 @@ let client: LanguageClient;
 export async function activate(context: vscode.ExtensionContext) {
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-jar', context.asAbsolutePath('out/java-lsp-server.jar')]
+        args: ['-jar', context.asAbsolutePath( await Jar ())]
     };
 
     const clientOptions: LanguageClientOptions = {
@@ -19,7 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
         // Specify initial settings
         initializationOptions: {
-            javaHome: '/usr/lib/jvm/java-17',
+            javaHome: await JavaHome(),
             maxProblems: 50
         },
 

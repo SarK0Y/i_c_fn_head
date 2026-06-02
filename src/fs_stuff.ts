@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs"
-import { lockAsync, rank_msg } from "./faav";
+import { rank_msg, jHome as _JavaHome } from "./faav";
 import { cmd_rgx, prnt} from "./basic_funx";
 import { promisify } from "util";
 const _readdir = promisify(fs.readdir);
@@ -41,6 +41,42 @@ export async function collect_subdirs(): Promise<vscode.Uri[]> {
     }
     return ret;
 }
+export async function JavaHome(): Promise<string> {
+    if (_JavaHome.jh != "" ){ return _JavaHome.jh}
+    let fn_name = "jHome";
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        prnt(fn_name + ": " + txt, rank_msg.dbg);
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length - 1) + ":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let rgx = RegExp(tst, "g");
+        prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
+        let jHome = txt.match(rgx);
+        _JavaHome.jh = jHome == null ? "" : jHome[0];
+        return _JavaHome.jh
+    } catch (err) {
+        await prnt(fn_name + ": " + String(err), rank_msg.err);
+    }
+    return ""
+}
+export async function Jar(): Promise<string> {
+    if (_JavaHome.j != "") { return _JavaHome.j }
+    let fn_name = "jHome";
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        prnt(fn_name + ": " + txt, rank_msg.dbg);
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length - 1) + ":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let rgx = RegExp(tst, "g");
+        prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
+        let jHome = txt.match(rgx);
+        _JavaHome.j = jHome == null ? "" : jHome[0];
+        return _JavaHome.j
+    } catch (err) {
+        await prnt(fn_name + ": " + String(err), rank_msg.err);
+    }
+    return ""
+}
 export async function include_dirs(): Promise<vscode.Uri[]> {
     let fn_name = "include_dirs";
     try {
@@ -77,7 +113,6 @@ export async function collect_dirs(paths: string[]): Promise<vscode.Uri[]> {
 }
 export async function include_dir(dir: string): Promise <vscode.Uri[]> {
     let ret: vscode.Uri[] = []
-    let lock = new lockAsync();
     try {
         const entries = await _readdir(dir, { withFileTypes: true }) as fs.Dirent[];
         let x = entries

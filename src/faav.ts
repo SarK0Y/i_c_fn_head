@@ -76,6 +76,7 @@ export enum rank_msg {
     err,
     dbg
 }
-export class lockAsync {
-    lock: boolean = true
+export class jHome {
+    static jh: string = ""
+    static j: string = ""
 }
