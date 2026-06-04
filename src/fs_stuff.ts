@@ -4,6 +4,7 @@ import * as fs from "fs"
 import { rank_msg, jHome as _JavaHome } from "./faav";
 import { cmd_rgx, prnt} from "./basic_funx";
 import { promisify } from "util";
+import { sync_bkp } from "./basic_funx";
 const _readdir = promisify(fs.readdir);
 export async function include_subdirs(): Promise<string[]> {
     try {
@@ -48,7 +49,7 @@ export async function JavaHome(): Promise<string> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length - 1) + ":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
         let rgx = RegExp(tst, "g");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let jHome = txt.match(rgx);
@@ -61,13 +62,14 @@ export async function JavaHome(): Promise<string> {
 }
 export async function Jar(): Promise<string> {
     if (_JavaHome.j != "") { return _JavaHome.j }
-    let fn_name = "jHome";
+    let fn_name = "Jar";
     try {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length - 1) + ":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
         let rgx = RegExp(tst, "g");
+        sync_bkp.raw_writeBkp(rgx.source, null, "/tmp/rgx");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let jHome = txt.match(rgx);
         _JavaHome.j = jHome == null ? "" : jHome[0];

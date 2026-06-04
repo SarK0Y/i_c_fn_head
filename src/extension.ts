@@ -4,10 +4,10 @@ import * as vscode from 'vscode';
 import { AccessibilityInformation as wa } from 'vscode';
 import { activate0 as colors } from './colorful';
 import { extra_activate } from './colorful';
-import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 import { menu } from "./quick_pick";
 import { i_c_fn_head_opts } from './faav';
-import {init } from './init'
+import { init } from './init'
+import { sync_bkp} from './basic_funx'
 export function activate11(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
 	let tru = true;
@@ -20,12 +20,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
 	let res = false;
 	try {
-	//	res = sync_bkp.raw_writeBkp(i_c_fn_head_opts.path_to_conf, null, "/tmp/tst00");
+		res = sync_bkp.raw_writeBkp(i_c_fn_head_opts.path_to_conf, null, "/tmp/tst00");
 	//	sync_bkp.raw_writeBkp("tst", null, "/tmp/tst0");
-		vscode.window.showInformationMessage(res.toString());
-		console.log(res.toString());
+//		vscode.window.showInformationMessage(res.toString());
+//		console.log(res.toString());
 		await init(context);
-		console.log(res.toString());
+//		console.log(res.toString());
 	}
 	catch {
 		console.error("err");
@@ -185,84 +185,7 @@ export function pad_strn_from_left(strn: & string, pad_len: number, pad: string)
 	}
 	return padding + strn;
 }
-class sync_bkp {
-	static bkuped: string[] = [];
-	static suffix: string = ".YourOriginalFile";
-	static bkp_source_file(path0: vscode.Uri | string): boolean {
-		let path = typeof path0 == "string" ? path0 : path0.fsPath;
-		if (this.file_was_bkuped7(path)) { return true; }
-		let new_name = path + this.suffix;
-		copyFileSync(path, new_name);
-		let ret = this.compare_files(path, new_name);
-		if (ret) {
-			this.bkuped.push(new_name);
-		}
-		return ret;
-	}
-	static file_was_bkuped7(path0: string): boolean {
-		let path = path0 + this.suffix;
-		if (this.bkuped.length == 0) { return false; }
-		let ret: boolean = false;
-		this.bkuped.forEach(function (strn: string, indx: number, arr: string[]) {
-			if (strn == path) { ret = true; return; }
-		});
-		if (!ret) {
-			if (existsSync(path)) {
-				this.bkuped.push(path);
-				return true;
-			}
-		}
-		return ret;
-	}
-	static compare_files(_1st: string, _2nd: string): boolean {
-		let open_1st: string = "";
-		let open_2nd: string = "";
-		try {
-			open_1st = readFileSync(
-				_1st,
-				{ encoding: "utf-8", flag: "r" },
-			);
-		}
-		catch (err) {
-			let msg = "File: " + _1st + " got err: " + err + "\n";
-			console.log(msg);
-			return false;
-		}
-		try {
-			open_2nd = readFileSync(
-				_2nd,
-				{ encoding: "utf-8", flag: "r" },
-			);
-		}
-		catch (err) {
-			let msg = "File: " + _2nd + " got err: " + err + "\n";
-			console.log(msg);
-			return false;
-		}
-		if (open_1st == open_2nd) { return true; }
-		return false;
-	}
-	static writeBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
-		let path: string = uri?.fsPath ?? path0 ?? "";
-		if (path == "") { return false; }
-		if (!this.bkp_source_file(path)) { return false; }
-		writeFileSync(
-			path,
-			data
-		);
-		return true;
-	}
-	static raw_writeBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
-		let path: string = uri?.fsPath ?? path0 ?? "";
-		//if (path == "") { return false; }
-		//if (!this.bkp_source_file(path)) { return false; }
-		writeFileSync(
-			path,
-			data
-		);
-		return true;
-	}
-}
+
 //fn
 /*
 >>>>>>>>>>>>>>>>>>>>>>>>> copag

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { uri_to_file_of_opts } from './fs_stuff';
 import { msg_opt } from './init';
 import { rank_msg } from './faav';
+import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 class set_cmd_type {
     static v: string = "rgx";
 }
@@ -174,4 +175,82 @@ export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
 export class exclude_uris {
     static v: vscode.Uri[] = []
     static s: string[] = []
+}
+export class sync_bkp {
+    static bkuped: string[] = [];
+    static suffix: string = ".YourOriginalFile";
+    static bkp_source_file(path0: vscode.Uri | string): boolean {
+        let path = typeof path0 == "string" ? path0 : path0.fsPath;
+        if (this.file_was_bkuped7(path)) { return true; }
+        let new_name = path + this.suffix;
+        copyFileSync(path, new_name);
+        let ret = this.compare_files(path, new_name);
+        if (ret) {
+            this.bkuped.push(new_name);
+        }
+        return ret;
+    }
+    static file_was_bkuped7(path0: string): boolean {
+        let path = path0 + this.suffix;
+        if (this.bkuped.length == 0) { return false; }
+        let ret: boolean = false;
+        this.bkuped.forEach(function (strn: string, indx: number, arr: string[]) {
+            if (strn == path) { ret = true; return; }
+        });
+        if (!ret) {
+            if (existsSync(path)) {
+                this.bkuped.push(path);
+                return true;
+            }
+        }
+        return ret;
+    }
+    static compare_files(_1st: string, _2nd: string): boolean {
+        let open_1st: string = "";
+        let open_2nd: string = "";
+        try {
+            open_1st = readFileSync(
+                _1st,
+                { encoding: "utf-8", flag: "r" },
+            );
+        }
+        catch (err) {
+            let msg = "File: " + _1st + " got err: " + err + "\n";
+            console.log(msg);
+            return false;
+        }
+        try {
+            open_2nd = readFileSync(
+                _2nd,
+                { encoding: "utf-8", flag: "r" },
+            );
+        }
+        catch (err) {
+            let msg = "File: " + _2nd + " got err: " + err + "\n";
+            console.log(msg);
+            return false;
+        }
+        if (open_1st == open_2nd) { return true; }
+        return false;
+    }
+    static writeBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
+        let path: string = uri?.fsPath ?? path0 ?? "";
+        if (path == "") { return false; }
+        if (!this.bkp_source_file(path)) { return false; }
+        writeFileSync(
+            path,
+            data
+        );
+        return true;
+    }
+    static raw_writeBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
+        let path: string = uri?.fsPath ?? path0 ?? "";
+        //if (path == "") { return false; }
+        //if (!this.bkp_source_file(path)) { return false; }
+        writeFileSync(
+            path,
+            data
+        );
+        return true;
+    }
 }
