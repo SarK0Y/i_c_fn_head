@@ -9,11 +9,11 @@ import { uri_to_file_of_opts } from './fs_stuff';
 import { conf } from './Config';
 import { custom_lsp } from './custom_lsp_cmd';
 
-export async function init(context: & vscode.ExtensionContext) {
+export async function init(context: vscode.ExtensionContext) {
    // if (!i_c_fn_head_opts.been_set) { return; }
-    try {
-        await conf(context);
-        await custom_lsp(context);
+ //   try {
+        //await conf(context);
+       // await custom_lsp(context);
         await run_tsts7();
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);
@@ -27,11 +27,11 @@ export async function init(context: & vscode.ExtensionContext) {
         
         //vscode.window.showInformationMessage(msg);
       //  vscode.window.showInformationMessage(txt._0);
-    }
-    catch (err) {
-        await prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )", rank_msg.err);
-        return;
-     }
+   // }
+  //  catch (err) {
+    //    await prnt("Sorry, Dear Dev.. it was failed to init i_c_fn_head (" + String(err) + " )", rank_msg.err);
+      //  return;
+    // }
     regDefProvider(context);
     colors(context);
 }

@@ -20,10 +20,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	//eval(extra_activate());
 	let res = false;
 	try {
+	//	res = sync_bkp.raw_writeBkp(i_c_fn_head_opts.path_to_conf, null, "/tmp/tst00");
+	//	sync_bkp.raw_writeBkp("tst", null, "/tmp/tst0");
+		vscode.window.showInformationMessage(res.toString());
+		console.log(res.toString());
 		await init(context);
-		res = sync_bkp.raw_writeBkp(i_c_fn_head_opts.path_to_conf, null, "/tmp/tst00");
-		sync_bkp.raw_writeBkp("tst", null, "/tmp/tst0");
-		console.log(res);
+		console.log(res.toString());
 	}
 	catch {
 		console.error("err");
