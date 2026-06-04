@@ -6,10 +6,14 @@ import { activate0 as colors } from './colorful';
 import { ShowDocumentSymbols } from './show_doc_symbs'
 import { getCMD, prnt } from './basic_funx';
 import { uri_to_file_of_opts } from './fs_stuff';
+import { conf } from './Config';
+import { custom_lsp } from './custom_lsp_cmd';
 
 export async function init(context: & vscode.ExtensionContext) {
    // if (!i_c_fn_head_opts.been_set) { return; }
     try {
+        await conf(context);
+        await custom_lsp(context);
         await run_tsts7();
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);

@@ -9,7 +9,7 @@ import {
 
 let client: LanguageClient;
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function conf(context: vscode.ExtensionContext) {
     const serverOptions: ServerOptions = {
         command: 'java',
         args: ['-jar', context.asAbsolutePath( await Jar ())]

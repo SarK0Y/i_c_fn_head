@@ -63,11 +63,11 @@ namespace CustomProtocol {
 
 let client: LanguageClient;
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function custom_lsp(context: vscode.ExtensionContext) {
     // Server configuration
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-jar', context.asAbsolutePath( await Jar () )]
+        args: ['-D', 'LOG_PATH=/tmp/loggy', '-cp', context.asAbsolutePath( await Jar () ), 'Main.main0']
     };
 
     const clientOptions: LanguageClientOptions = {
