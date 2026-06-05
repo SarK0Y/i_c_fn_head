@@ -72,9 +72,14 @@ export async function Jar(): Promise<string> {
         sync_bkp.raw_writeBkp(rgx.source, null, "/tmp/rgx");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let jar = txt.matchAll(rgx);
+        sync_bkp.raw_writeBkp(jar.toString(), null, "/tmp/jar");
         let _jar: string = "";
         for (let m of jar) {
-            _jar = m[1];
+            sync_bkp.raw_appendBkp(m[0], null, "/tmp/jar");
+            sync_bkp.raw_appendBkp(m[1], null, "/tmp/jar");
+            if (m[1] != "") {
+                _jar = m[1];
+            }
         }
         _JavaHome.j = jar == null ? "" : _jar;
         return _JavaHome.j

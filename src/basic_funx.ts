@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { uri_to_file_of_opts } from './fs_stuff';
 import { msg_opt } from './init';
 import { rank_msg } from './faav';
-import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
+import { appendFileSync, writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 class set_cmd_type {
     static v: string = "rgx";
 }
@@ -248,6 +248,16 @@ export class sync_bkp {
         //if (path == "") { return false; }
         //if (!this.bkp_source_file(path)) { return false; }
         writeFileSync(
+            path,
+            data
+        );
+        return true;
+    }
+    static raw_appendBkp(data: string, uri?: vscode.Uri | null, path0?: string): boolean {
+        let path: string = uri?.fsPath ?? path0 ?? "";
+        //if (path == "") { return false; }
+        //if (!this.bkp_source_file(path)) { return false; }
+        appendFileSync(
             path,
             data
         );
