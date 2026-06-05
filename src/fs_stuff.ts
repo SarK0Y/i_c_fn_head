@@ -71,8 +71,12 @@ export async function Jar(): Promise<string> {
         let rgx = RegExp(tst, "g");
         sync_bkp.raw_writeBkp(rgx.source, null, "/tmp/rgx");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
-        let jHome = txt.match(rgx);
-        _JavaHome.j = jHome == null ? "" : jHome[0];
+        let jar = txt.matchAll(rgx);
+        let _jar: string = "";
+        for (let m of jar) {
+            _jar = m[1];
+        }
+        _JavaHome.j = jar == null ? "" : _jar;
         return _JavaHome.j
     } catch (err) {
         await prnt(fn_name + ": " + String(err), rank_msg.err);
