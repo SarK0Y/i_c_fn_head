@@ -46,6 +46,7 @@ export class i_c_fn_head_opts {
     static provide_lang_CPP: boolean = false;
     static provide_lang_D: boolean = false;
     static provide_lang_Rust: boolean = false;
+    static provide_lang_Java: boolean = false;
 }
 export class _block_head {
     name: string = "";

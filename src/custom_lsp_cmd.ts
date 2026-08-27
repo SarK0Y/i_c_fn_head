@@ -67,7 +67,7 @@ export async function custom_lsp(context: vscode.ExtensionContext) {
     // Server configuration
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-D', 'LOG_PATH=/tmp/loggy', '-cp', await Jar (), 'Main.main0']
+        args: ['-DLOG_PATH=/tmp/loggy', '-cp', await Jar (), 'Main.main0']
     };
     sync_bkp.raw_writeBkp (serverOptions.args?.toString() ?? "none", null, "/tmp/lsp_args")
     const clientOptions: LanguageClientOptions = {

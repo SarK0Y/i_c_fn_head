@@ -49,12 +49,21 @@ export async function JavaHome(): Promise<string> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
         let rgx = RegExp(tst, "g");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
-        let jHome = txt.match(rgx);
-        _JavaHome.jh = jHome == null ? "" : jHome[0];
-        return _JavaHome.jh
+        let jhome = txt.matchAll(rgx);
+        sync_bkp.raw_writeBkp(jhome.toString(), null, "/tmp/jar");
+        let _jhome: string = "";
+        for (let m of jhome) {
+            sync_bkp.raw_appendBkp(m[0], null, "/tmp/jar");
+            sync_bkp.raw_appendBkp(m[1], null, "/tmp/jar");
+            if (m[1] != "") {
+                _jhome = m[1];
+            }
+        }
+        _JavaHome.j = jhome == null ? "" : _jhome;
+        return _JavaHome.j
     } catch (err) {
         await prnt(fn_name + ": " + String(err), rank_msg.err);
     }

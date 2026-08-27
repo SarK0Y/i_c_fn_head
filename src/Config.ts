@@ -12,7 +12,7 @@ let client: LanguageClient;
 export async function conf(context: vscode.ExtensionContext) {
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-jar', context.asAbsolutePath( await Jar ())]
+        args: ['-DLOG_PATH=/tmp/loggy', '-jar', await Jar()]
     };
 
     const clientOptions: LanguageClientOptions = {

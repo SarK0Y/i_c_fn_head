@@ -13,8 +13,8 @@ import { sync_bkp } from './basic_funx';
 export async function init(context: vscode.ExtensionContext) {
    // if (!i_c_fn_head_opts.been_set) { return; }
  //   try {
-        //await conf(context);
-        await custom_lsp(context);
+        await conf(context);
+        //await custom_lsp(context);
         await run_tsts7();
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);
@@ -48,6 +48,12 @@ function set_lang(name: string, context?: vscode.ExtensionContext) {
         i_c_fn_head_opts.provide_lang_D = true;
         context?.subscriptions.push(
             vscode.languages.registerDocumentSymbolProvider({ language: 'D' }, new ShowDocumentSymbols())
+        );
+    }
+    if (run_opt(name).test(txt._0) && name == "Java") {
+        i_c_fn_head_opts.provide_lang_Java = true;
+        context?.subscriptions.push(
+            vscode.languages.registerDocumentSymbolProvider({ language: 'Java' }, new ShowDocumentSymbols())
         );
     }
     if (run_opt(name).test(txt._0) && name == "CPP") {
