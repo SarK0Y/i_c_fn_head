@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { JavaHome, Jar } from './fs_stuff';
 import {
     LanguageClient,
@@ -10,9 +11,13 @@ import {
 let client: LanguageClient;
 
 export async function conf(context: vscode.ExtensionContext) {
+    const jarPath = await Jar();
+    if (!jarPath || !fs.existsSync(jarPath)) {
+        return;
+    }
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-DLOG_PATH=/tmp/loggy', '-jar', await Jar()]
+        args: ['-DLOG_PATH=/tmp/loggy', '-jar', jarPath]
     };
 
     const clientOptions: LanguageClientOptions = {

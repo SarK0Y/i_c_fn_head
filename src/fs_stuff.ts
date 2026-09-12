@@ -43,7 +43,7 @@ export async function collect_subdirs(): Promise<vscode.Uri[]> {
     return ret;
 }
 export async function JavaHome(): Promise<string> {
-    if (_JavaHome.jh != "" ){ return _JavaHome.jh}
+    if (_JavaHome.jh != "") { return _JavaHome.jh }
     let fn_name = "jHome";
     try {
         const file_of_opts = await uri_to_file_of_opts();
@@ -62,8 +62,8 @@ export async function JavaHome(): Promise<string> {
                 _jhome = m[1];
             }
         }
-        _JavaHome.j = jhome == null ? "" : _jhome;
-        return _JavaHome.j
+        _JavaHome.jh = jhome == null ? "" : _jhome;
+        return _JavaHome.jh
     } catch (err) {
         await prnt(fn_name + ": " + String(err), rank_msg.err);
     }

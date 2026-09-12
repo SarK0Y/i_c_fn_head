@@ -23,6 +23,7 @@ export async function init(context: vscode.ExtensionContext) {
         set_lang("Rust", context);
         set_lang("C", context);
         set_lang("CPP", context);
+        set_lang("Java", context);
         i_c_fn_head_opts.been_set = true;
         i_c_fn_head_opts.path_to_conf = uri[0].fsPath;
         
