@@ -35,7 +35,7 @@ export async function getCMD(set_placeholder0?: string | null, _txt?: string | u
     return ret;
 }
 export class cmd_rgx {
-    static collect_rgx_from_doc: RegExp = /\/\/\s*rgx:\s*(\/.*:::[gmis]*)\s*\/\//g;
+    static collect_rgx_from_doc: RegExp = /$^/; // rebuilt by set_collect_rgx_from_doc
     static placeholder0: string = "@663@";
     static placeholder0_max_len: number = 200;
     static open_rgx: string = "/";
@@ -47,8 +47,8 @@ export class cmd_rgx {
         this.open_rgx = open_rgx ?? this.open_rgx;
         this.close_rgx = close_rgx ?? this.close_rgx;
         let cmd_type = set_cmd_type.v ?? "rgx";
-        let construct_rgx: string = "//\\s*" + cmd_type + ":\\s*(" + this.open_rgx + ".*" + this.close_rgx + "[gmis]*)\\s*//";
-        this.collect_rgx_from_doc = new RegExp(construct_rgx, "g");
+        let construct_rgx: string = "^[ \\t]*//[ \\t]*" + cmd_type + "[ \\t]*:[ \\t]*(" + this.open_rgx + ".*?(?:" + this.close_rgx + "[gmis]*)?)[ \\t]*//[ \\t\\r]*$";
+        this.collect_rgx_from_doc = new RegExp(construct_rgx, "gm");
         await prnt("set_collect_rgx_from_doc: "+this.collect_rgx_from_doc.source);
         return this.collect_rgx_from_doc;
     }
@@ -88,6 +88,7 @@ export class cmd_rgx {
         let flags = strn.match(new RegExp(check_end_of_rgx));
         let _flags = flags != null ? flags[0].slice(this.close_rgx.length) : "";
         let regex = strn.slice(1).replaceAll(this.close_rgx + _flags, "");
+        if (regex.length > 1 && regex.endsWith("/")) { regex = regex.slice(0, regex.length - 1); }
         try {
             let ret = new RegExp(regex, _flags);
             await prnt("strn to rgx: " + ret.source + " " + ret.flags);

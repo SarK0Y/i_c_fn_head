@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, NotificationType } from 'vscode-languageclient/node';
+import { LanguageClient, NotificationType, RequestType } from 'vscode-languageclient/node';
 import { KeywordsFileOf } from './fs_stuff';
 import { prnt } from './basic_funx';
 import { rank_msg } from './faav';
@@ -9,8 +9,54 @@ export interface set_lang_params {
     file: string;
 }
 
+export interface def_params {
+    uri: string;
+    srcUri: string;
+    word: string;
+}
+
+export interface def_pos {
+    line: number;
+    character: number;
+}
+
+export interface def_range {
+    start: def_pos;
+    end: def_pos;
+}
+
+export interface def_loc {
+    uri: string;
+    range: def_range;
+}
+
 export namespace lang_proto {
     export const set_lang = new NotificationType<set_lang_params>('i_c_fn_head/setLanguage');
+    export const definitions = new RequestType<def_params, def_loc[], void>('i_c_fn_head/definitions');
+}
+
+let _client: LanguageClient | undefined = undefined;
+
+export function set_client(client: LanguageClient): void {
+    _client = client;
+}
+
+export function get_client(): LanguageClient | undefined {
+    return _client;
+}
+
+export async function srv_definitions(uri: string, srcUri: string, word: string): Promise<def_loc[]> {
+    if (word == "") { return [] }
+    if (_client == undefined) {
+        await prnt("srv_definitions: no lsp client", rank_msg.err);
+        return [];
+    }
+    try {
+        return await _client.sendRequest(lang_proto.definitions, { uri: uri, srcUri: srcUri, word: word });
+    } catch (err) {
+        await prnt("srv_definitions: " + String(err), rank_msg.err);
+        return [];
+    }
 }
 
 export async function send_lang(client: LanguageClient, editor?: vscode.TextEditor | null): Promise<void> {

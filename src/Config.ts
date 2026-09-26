@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { JavaHome, Jar, KeywordsFileOf } from './fs_stuff';
 import { lang_sel } from './faav';
-import { watch_active_lang } from './lsp_lang';
+import { watch_active_lang, set_client } from './lsp_lang';
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -74,6 +74,7 @@ export async function conf(context: vscode.ExtensionContext) {
     );
 
     await client.start();
+    set_client(client);
 
     context.subscriptions.push(watch_active_lang(client));
 

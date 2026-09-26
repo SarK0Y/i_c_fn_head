@@ -38,10 +38,10 @@ export async function init(context: vscode.ExtensionContext) {
     colors(context);
 }
 function run_opt(key: string): RegExp {
-    return new RegExp(`\\/\\/\\s*run\\s+${key}\\s*\\/\\/`);
+    return new RegExp(`^[ \t]*\/\/[ \t]*run[ \t]+${key}[ \t]*\/\/[ \t\r]*$`, "m");
 }
 export function msg_opt(key: string): RegExp {
-    return new RegExp(`\\/\\/\\s*msg\\.${key}\\s*\\/\\/`);
+    return new RegExp(`^[ \t]*\/\/[ \t]*msg\.${key}[ \t]*\/\/[ \t\r]*$`, "m");
 }
 function set_lang(name: string, context?: vscode.ExtensionContext) {
     //vscode.window.showInformationMessage(txt._0);

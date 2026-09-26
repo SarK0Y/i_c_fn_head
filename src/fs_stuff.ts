@@ -6,19 +6,26 @@ import { cmd_rgx, prnt} from "./basic_funx";
 import { promisify } from "util";
 import { sync_bkp } from "./basic_funx";
 const _readdir = promisify(fs.readdir);
+// one directive per line: //key: value// , so the closing // is pinned to the
+// end of the line and the value may hold any number of //
+function dir_rgx(key: string, value: string): RegExp {
+    return new RegExp(
+        "^[ \\t]*//[ \\t]*" + key + "[ \\t]*:[ \\t]*" + value +
+        "(?:" + cmd_rgx.close_rgx + "[gims]*)?[ \\t]*//[ \\t\\r]*$",
+        "gm");
+}
 export async function include_subdirs(): Promise<string[]> {
     try {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
-        prnt("include_subdirs: " + txt, rank_msg.dbg);
-        let tst: string = "//include_subdirs:\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
-        let rgx = RegExp(tst, "g");
-        prnt("include_subdirs: " + rgx.source, rank_msg.dbg);
-        let collect_includes = txt.matchAll(rgx);
         let ret: string[] = [];
-        for (let m of collect_includes) {
-            prnt("include_subdirs: " + m[1], rank_msg.dbg);
-            ret.push(m[1]);
+        for (let key of ["include_subdir", "include_subdirs"]) {
+            let rgx = dir_rgx(key, "(\\/.*?)");
+            prnt("include_subdirs: " + rgx.source, rank_msg.dbg);
+            for (let m of txt.matchAll(rgx)) {
+                prnt("include_subdirs: " + m[1], rank_msg.dbg);
+                ret.push(m[1]);
+            }
         }
         return ret;
     } catch (err) {
@@ -49,8 +56,8 @@ export async function JavaHome(): Promise<string> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*(?:" + cmd_rgx.close_rgx + ")?\\s*//";
-        let rgx = RegExp(tst, "g");
+        let tst: string = "^[ \\t]*//[ \\t]*" + fn_name + "[ \\t]*:[ \\t]*" + "([^\\r\\n]*?)" + "[ \\t]*(?:" + cmd_rgx.close_rgx + ")?[ \\t]*//[ \\t\\r]*$";
+        let rgx = RegExp(tst, "gm");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let jhome = txt.matchAll(rgx);
         sync_bkp.raw_writeBkp(jhome.toString(), null, "/tmp/jar");
@@ -76,8 +83,8 @@ export async function Jar(): Promise<string> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*(?:" + cmd_rgx.close_rgx + ")?\\s*//";
-        let rgx = RegExp(tst, "g");
+        let tst: string = "^[ \\t]*//[ \\t]*" + fn_name.slice(0, fn_name.length) + "[ \\t]*:[ \\t]*" + "(\\/.*?)" + "[ \\t]*(?:" + cmd_rgx.close_rgx + ")?[ \\t]*//[ \\t\\r]*$";
+        let rgx = RegExp(tst, "gm");
         sync_bkp.raw_writeBkp(rgx.source, null, "/tmp/rgx");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let jar = txt.matchAll(rgx);
@@ -104,8 +111,8 @@ export async function KeywordsFiles(): Promise<Map<string, string>> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name + ":\\s*([^\\r\\n]*?)" + "\\s*(?:" + cmd_rgx.close_rgx + ")?\\s*//";
-        let rgx = RegExp(tst, "g");
+        let tst: string = "^[ \t]*//[ \t]*" + fn_name + "[ \t]*:[ \t]*" + "([^\r\n]*?)" + "[ \t]*(?:" + cmd_rgx.close_rgx + ")?[ \t]*//[ \t\r]*$";
+        let rgx = RegExp(tst, "gm");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let kw_files = txt.matchAll(rgx);
         for (let m of kw_files) {
@@ -135,8 +142,7 @@ export async function include_dirs(): Promise<vscode.Uri[]> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length - 1) +":\\s*" + cmd_rgx.open_rgx + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
-        let rgx = RegExp(tst, "g");
+        let rgx = dir_rgx(fn_name.slice(0, fn_name.length - 1), "(" + cmd_rgx.open_rgx + ".*?)");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let collect_includes = txt.matchAll(rgx);
         let paths: string[] = [];
