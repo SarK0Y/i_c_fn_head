@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs"
-import { rank_msg, jHome as _JavaHome } from "./faav";
+import { rank_msg, jHome as _JavaHome, kwFile as _kwFile } from "./faav";
 import { cmd_rgx, prnt} from "./basic_funx";
 import { promisify } from "util";
 import { sync_bkp } from "./basic_funx";
@@ -49,7 +49,7 @@ export async function JavaHome(): Promise<string> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*(?:" + cmd_rgx.close_rgx + ")?\\s*//";
         let rgx = RegExp(tst, "g");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
         let jhome = txt.matchAll(rgx);
@@ -62,8 +62,8 @@ export async function JavaHome(): Promise<string> {
                 _jhome = m[1];
             }
         }
-        _JavaHome.j = jhome == null ? "" : _jhome;
-        return _JavaHome.j
+        _JavaHome.jh = _jhome;
+        return _JavaHome.jh
     } catch (err) {
         await prnt(fn_name + ": " + String(err), rank_msg.err);
     }
@@ -76,7 +76,7 @@ export async function Jar(): Promise<string> {
         const file_of_opts = await uri_to_file_of_opts();
         const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
         prnt(fn_name + ": " + txt, rank_msg.dbg);
-        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*" + cmd_rgx.close_rgx + "//";
+        let tst: string = "//\\s*" + fn_name.slice(0, fn_name.length) + ":\\s*" + "(\\/[a-zA-Z/_\.0-9\-\*]+)" + "\\s*(?:" + cmd_rgx.close_rgx + ")?\\s*//";
         let rgx = RegExp(tst, "g");
         sync_bkp.raw_writeBkp(rgx.source, null, "/tmp/rgx");
         prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
@@ -90,12 +90,44 @@ export async function Jar(): Promise<string> {
                 _jar = m[1];
             }
         }
-        _JavaHome.j = jar == null ? "" : _jar;
+        _JavaHome.j = _jar;
         return _JavaHome.j
     } catch (err) {
         await prnt(fn_name + ": " + String(err), rank_msg.err);
     }
     return ""
+}
+export async function KeywordsFiles(): Promise<Map<string, string>> {
+    if (_kwFile.files.size > 0) { return _kwFile.files }
+    let fn_name = "keywordsFile";
+    try {
+        const file_of_opts = await uri_to_file_of_opts();
+        const txt = (await vscode.workspace.openTextDocument(file_of_opts[0])).getText();
+        prnt(fn_name + ": " + txt, rank_msg.dbg);
+        let tst: string = "//\\s*" + fn_name + ":\\s*([^\\r\\n]*?)" + "\\s*(?:" + cmd_rgx.close_rgx + ")?\\s*//";
+        let rgx = RegExp(tst, "g");
+        prnt(fn_name + ": " + rgx.source, rank_msg.dbg);
+        let kw_files = txt.matchAll(rgx);
+        for (let m of kw_files) {
+            for (let pair of m[1].split(/[\s,]+/)) {
+                let eq = pair.indexOf("=");
+                if (eq < 1) { continue }
+                let lang = pair.slice(0, eq).trim().toLowerCase();
+                let file = pair.slice(eq + 1).trim();
+                if (lang == "" || file == "") { continue }
+                prnt(fn_name + ": " + lang + " -> " + file, rank_msg.dbg);
+                _kwFile.files.set(lang, file);
+            }
+        }
+        return _kwFile.files
+    } catch (err) {
+        await prnt(fn_name + ": " + String(err), rank_msg.err);
+    }
+    return _kwFile.files
+}
+export async function KeywordsFileOf(lang: string): Promise<string> {
+    let files = await KeywordsFiles();
+    return files.get(lang.trim().toLowerCase()) ?? "";
 }
 export async function include_dirs(): Promise<vscode.Uri[]> {
     let fn_name = "include_dirs";

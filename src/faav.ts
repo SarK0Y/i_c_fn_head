@@ -48,6 +48,18 @@ export class i_c_fn_head_opts {
     static provide_lang_Rust: boolean = false;
     static provide_lang_Java: boolean = false;
 }
+export function lang_sel(): string[] {
+    let sel: string[] = [];
+    if (i_c_fn_head_opts.provide_lang_C) { sel.push('c'); }
+    if (i_c_fn_head_opts.provide_lang_Rust) { sel.push('rust'); }
+    if (i_c_fn_head_opts.provide_lang_CPP) { sel.push('cpp'); }
+    if (i_c_fn_head_opts.provide_lang_D) { sel.push('d'); }
+    if (i_c_fn_head_opts.provide_lang_Java) { sel.push('java'); }
+    return sel
+}
+export function doc_sel(): vsc.DocumentFilter[] {
+    return lang_sel().map(lang => ({ scheme: 'file', language: lang }));
+}
 export class _block_head {
     name: string = "";
     lnum: number = 0;
@@ -80,4 +92,7 @@ export enum rank_msg {
 export class jHome {
     static jh: string = ""
     static j: string = ""
+}
+export class kwFile {
+    static files: Map<string, string> = new Map<string, string>()
 }

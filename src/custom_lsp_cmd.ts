@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import { Jar} from './fs_stuff'
+import { Jar, KeywordsFileOf } from './fs_stuff'
+import { lang_sel } from './faav'
+import { watch_active_lang } from './lsp_lang'
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -65,13 +67,20 @@ let client: LanguageClient;
 
 export async function custom_lsp(context: vscode.ExtensionContext) {
     // Server configuration
+    const keywords_file = await KeywordsFileOf("java");
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-DLOG_PATH=/tmp/loggy', '-cp', await Jar (), 'Main.main0']
+        args: [
+            '-DLOG_PATH=/tmp/loggy',
+            ...(keywords_file == "" ? [] : ['-DkeywordsFile=' + keywords_file]),
+            '-cp',
+            await Jar(),
+            'Main.main0'
+        ]
     };
     sync_bkp.raw_writeBkp (serverOptions.args?.toString() ?? "none", null, "/tmp/lsp_args")
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'java' }]
+        documentSelector: lang_sel()
     };
 
     client = new LanguageClient(
@@ -109,6 +118,8 @@ export async function custom_lsp(context: vscode.ExtensionContext) {
 
     await client.start();
     console.log('[CLIENT] Language client started');
+
+    context.subscriptions.push(watch_active_lang(client));
 
     // Register commands to send data TO server
     context.subscriptions.push(

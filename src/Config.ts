@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import { JavaHome, Jar } from './fs_stuff';
+import { JavaHome, Jar, KeywordsFileOf } from './fs_stuff';
+import { lang_sel } from './faav';
+import { watch_active_lang } from './lsp_lang';
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -10,13 +12,19 @@ import {
 let client: LanguageClient;
 
 export async function conf(context: vscode.ExtensionContext) {
+    const keywords_file = await KeywordsFileOf("java");
     const serverOptions: ServerOptions = {
         command: 'java',
-        args: ['-DLOG_PATH=/tmp/loggy', '-jar', await Jar()]
+        args: [
+            '-DLOG_PATH=/tmp/loggy',
+            ...(keywords_file == "" ? [] : ['-DkeywordsFile=' + keywords_file]),
+            '-jar',
+            await Jar()
+        ]
     };
 
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'java' }],
+        documentSelector: lang_sel(),
 
         // Specify initial settings
         initializationOptions: {
@@ -66,6 +74,8 @@ export async function conf(context: vscode.ExtensionContext) {
     );
 
     await client.start();
+
+    context.subscriptions.push(watch_active_lang(client));
 
     // Register commands to modify configuration at runtime
     context.subscriptions.push(

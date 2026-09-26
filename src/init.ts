@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { i_c_fn_head_opts, langsName, rank_msg } from './faav';
+import { i_c_fn_head_opts, langsName, rank_msg, doc_sel } from './faav';
 import { cmd_rgx } from './basic_funx';
 import { langDefinitionProvider } from './goto_impl';
 import { activate0 as colors } from './colorful';
@@ -12,9 +12,7 @@ import { sync_bkp } from './basic_funx';
 
 export async function init(context: vscode.ExtensionContext) {
    // if (!i_c_fn_head_opts.been_set) { return; }
- //   try {
-        await conf(context);
-        //await custom_lsp(context);
+  //   try {
         await run_tsts7();
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);
@@ -26,6 +24,8 @@ export async function init(context: vscode.ExtensionContext) {
         set_lang("Java", context);
         i_c_fn_head_opts.been_set = true;
         i_c_fn_head_opts.path_to_conf = uri[0].fsPath;
+        await conf(context);
+        //await custom_lsp(context);
         
         //vscode.window.showInformationMessage(msg);
       //  vscode.window.showInformationMessage(txt._0);
@@ -48,13 +48,13 @@ function set_lang(name: string, context?: vscode.ExtensionContext) {
     if (run_opt(name).test(txt._0) && name == "D") {
         i_c_fn_head_opts.provide_lang_D = true;
         context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'D' }, new ShowDocumentSymbols())
+            vscode.languages.registerDocumentSymbolProvider({ language: 'd' }, new ShowDocumentSymbols())
         );
     }
     if (run_opt(name).test(txt._0) && name == "Java") {
         i_c_fn_head_opts.provide_lang_Java = true;
         context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'Java' }, new ShowDocumentSymbols())
+            vscode.languages.registerDocumentSymbolProvider({ language: 'java' }, new ShowDocumentSymbols())
         );
     }
     if (run_opt(name).test(txt._0) && name == "CPP") {
@@ -80,19 +80,10 @@ class txt {
     static _0: string = "";
 }
 export function regDefProvider(context: & vscode.ExtensionContext) {
-     const selector: vscode.DocumentSelector = mkDocSel ();
+     const selector: vscode.DocumentSelector = doc_sel();
       context.subscriptions.push(
         vscode.languages.registerDefinitionProvider(selector, new langDefinitionProvider())
       );
-}
-function mkDocSel(): vscode.DocumentSelector {
-    let sel = [] as (vscode.DocumentFilter | string)[];
-    let sel_strn: string = "";
-    if (i_c_fn_head_opts.provide_lang_C) { sel.push({ scheme: 'file', language: 'c' }); }
-    if (i_c_fn_head_opts.provide_lang_Rust) { sel.push({ scheme: 'file', language: 'rust' }); }
-    if (i_c_fn_head_opts.provide_lang_CPP) { sel.push({ scheme: 'file', language: 'cpp' }); }
-    if (i_c_fn_head_opts.provide_lang_D) { sel.push({ scheme: 'file', language: 'D' }); }
-    return sel
 }
 export async function run_tsts7(): Promise <void> {
     try {
