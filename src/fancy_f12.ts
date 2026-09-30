@@ -26,7 +26,13 @@ export async function definitions(
 ): Promise<vscode.Location[]> {
     const ret: vscode.Location[] = [];
     const wordRange = doc.getWordRangeAtPosition(position, word_rgx);
-    if (wordRange == undefined) { return ret }
+    if (wordRange == undefined) {
+        // was silent, so "F12 does nothing" was indistinguishable from
+        // "no word under the cursor" vs "provider never called"
+        await prnt("definitions: no word at " + doc.uri.fsPath + ":" + (position.line + 1)
+            + ":" + (position.character + 1) + " lang=" + doc.languageId, rank_msg.dbg);
+        return ret
+    }
     const word = doc.getText(wordRange);
     if (word == "") { return ret }
     const file_of_opts = await uri_to_file_of_opts();

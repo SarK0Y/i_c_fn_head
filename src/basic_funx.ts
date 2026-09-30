@@ -14,13 +14,31 @@ export async function prnt(msg: string, rank?: rank_msg) {
         case rank_msg.err: { label = "[msg.err]"; break; }
         case rank_msg.warn: { label = "[msg.warn]"; break; }
     }
+    if (rank == rank_msg.dbg) { console_msg.dbg(label + ": " + msg); return }
     console_msg.show(label + ": " + msg);
 }
 export class console_msg {
     static #outputChannel = vscode.window.createOutputChannel('i-c-fn-head');
+    /** dbg fires on every tab switch and every selection move, so only the
+     * newest line of each window survives instead of one line per call */
+    static #dbg_delay_ms: number = 1000;
+    static #dbg_pending: NodeJS.Timeout | null = null;
+    static #dbg_last: string = "";
     static show(msg: string) {
         this.#outputChannel.appendLine(msg);
-        this.#outputChannel.show();
+        // preserveFocus, else every err/warn yanks the cursor out of the editor
+        this.#outputChannel.show(true);
+    }
+    /** queued, never reveals the panel */
+    static dbg(msg: string) {
+        this.#dbg_last = msg;
+        if (this.#dbg_pending != null) { return }
+        this.#dbg_pending = setTimeout(() => {
+            this.#dbg_pending = null;
+            let last = this.#dbg_last;
+            this.#dbg_last = "";
+            if (last != "") { this.#outputChannel.appendLine(last) }
+        }, this.#dbg_delay_ms);
     }
 }
 export async function getCMD(set_placeholder0?: string | null, _txt?: string | undefined | null,  cmd_type?: string): Promise< RegExp[] | null> {
@@ -169,7 +187,9 @@ export async function msg_mode(rank: rank_msg | string): Promise <boolean> {
         if (msg_opt(mode).test(txt)) { return true; }
         return false;
     } catch (err) {
-        await prnt("msg mode: " + String(err), rank_msg.err);
+        // prnt() would call msg_mode() again, and this is the fn msg_mode()
+        // calls to find the opts - with no opts file that never terminates
+        console.error("i_c_fn_head msg_mode: " + String(err));
         return false;
     }
 }

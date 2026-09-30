@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { writeFileSync, readFileSync, copyFileSync, closeSync, existsSync, rmSync } from "fs";
 import { _block_head} from './faav'
+export const exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
 export function _c_fn_body(doc: string | string[], uri: vscode.Uri, symbols: & vscode.SymbolInformation[]) {
     let c_like: lang_element = new lang_element();
     c_like.exclude_strns = /(\"[\s\S]*?\")/gm
@@ -244,7 +245,27 @@ export function add_symb(
         '',
         new vscode.Location(uri, set_rng)));
 }
-export class lang_element {
+/**
+ * The line a function symbol should be named after, and the line its range
+ * should start on. block_head lands on the last line seen while outside any
+ * block, which for a signature spread over several lines is the closing paren
+ * rather than the declaration, so walk back to the line that opens the
+ * argument list.
+ */
+export function get_head_lnum(orig_lines: string[], lnum: number): number {
+    for (let i = lnum; i > 0; i--) {
+        let ln = orig_lines[i].replaceAll(exclude_comments, "").trim();
+        if (ln.indexOf('(') > -1) {
+            // a line that opens with "(" is itself a continuation
+            return ln.startsWith("(") ? Math.max(0, i - 1) : i;
+        }
+        // a blank line, a statement end or a closing brace starts a new
+        // construct, so stop rather than wander into unrelated code
+        if (ln.length == 0 || ln.endsWith(";") || ln == "}") { break; }
+    }
+    return lnum;
+}
+class lang_element {
     #privateVar: number = 0;
     exclude_strns: RegExp = /(\"[\s\S]*?\")/gm;
     exclude_comments: RegExp = /(\/\/.*)|(\/\*.*(\/)?)/g;//|([\"\'\`].*[\"\'\`])/g;
@@ -344,10 +365,11 @@ export class lang_element {
     close_block7(i: number): boolean | undefined {
         if (this.uri == null) { return undefined }
         if (this.#start_block != null && this.#block_state == 0 && this.block_head.name.length > 0) {
+            let head = get_head_lnum(this.#orig_lines, this.block_head.lnum);
             add_symb(
-                this.block_head.lnum,
+                head,
                 i + 1,
-                this.#orig_lines[this.block_head.lnum],
+                this.#orig_lines[head],
                 "Function",
                 this.uri,
                 this.symbols

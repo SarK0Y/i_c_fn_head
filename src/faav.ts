@@ -48,13 +48,51 @@ export class i_c_fn_head_opts {
     static provide_lang_Rust: boolean = false;
     static provide_lang_Java: boolean = false;
 }
+/**
+ * package.json contributes C/D/Rust/CPP for .c/.d/.rs/.cpp, and that
+ * contribution wins over the real language extension's, so a .d document's
+ * languageId is "D" - not the lowercase "d" the other extensions use. Every
+ * selector has to use the id we declare, or nothing ever matches; both cases
+ * are registered so it still works if the other extension wins instead.
+ * Java is absent from our contributes, so only the lowercase id exists.
+ */
+export const lang_ids: [string, string[]][] = [
+    ["C", ["C", "c"]],
+    ["Rust", ["Rust", "rust"]],
+    ["CPP", ["CPP", "cpp"]],
+    ["D", ["D", "d"]],
+    ["Java", ["java"]]
+];
+export function ids_of_lang(name: string): string[] {
+    for (let [key, ids] of lang_ids) {
+        if (key == name) { return ids }
+    }
+    return [];
+}
+export function flag_of_lang(name: string): boolean {
+    switch (name) {
+        case "C": { return i_c_fn_head_opts.provide_lang_C }
+        case "CPP": { return i_c_fn_head_opts.provide_lang_CPP }
+        case "D": { return i_c_fn_head_opts.provide_lang_D }
+        case "Rust": { return i_c_fn_head_opts.provide_lang_Rust }
+        case "Java": { return i_c_fn_head_opts.provide_lang_Java }
+    }
+    return false
+}
+export function enable_lang(name: string): void {
+    switch (name) {
+        case "C": { i_c_fn_head_opts.provide_lang_C = true; break }
+        case "CPP": { i_c_fn_head_opts.provide_lang_CPP = true; break }
+        case "D": { i_c_fn_head_opts.provide_lang_D = true; break }
+        case "Rust": { i_c_fn_head_opts.provide_lang_Rust = true; break }
+        case "Java": { i_c_fn_head_opts.provide_lang_Java = true; break }
+    }
+}
 export function lang_sel(): string[] {
     let sel: string[] = [];
-    if (i_c_fn_head_opts.provide_lang_C) { sel.push('c'); }
-    if (i_c_fn_head_opts.provide_lang_Rust) { sel.push('rust'); }
-    if (i_c_fn_head_opts.provide_lang_CPP) { sel.push('cpp'); }
-    if (i_c_fn_head_opts.provide_lang_D) { sel.push('d'); }
-    if (i_c_fn_head_opts.provide_lang_Java) { sel.push('java'); }
+    for (let [key, ids] of lang_ids) {
+        if (flag_of_lang(key)) { sel.push(...ids) }
+    }
     return sel
 }
 export function doc_sel(): vsc.DocumentFilter[] {

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { i_c_fn_head_opts, langsName, rank_msg, doc_sel } from './faav';
+import { i_c_fn_head_opts, enable_lang, flag_of_lang, ids_of_lang, lang_sel, langsName, rank_msg, doc_sel } from './faav';
 import { cmd_rgx } from './basic_funx';
 import { langDefinitionProvider } from './goto_impl';
 import { activate0 as colors } from './colorful';
@@ -17,14 +17,14 @@ export async function init(context: vscode.ExtensionContext) {
         const uri = await uri_to_file_of_opts();
         const doc = await vscode.workspace.openTextDocument(uri[0]);
         txt._0 = doc.getText();
-        set_lang("D", context);
-        set_lang("Rust", context);
-        set_lang("C", context);
-        set_lang("CPP", context);
-        set_lang("Java", context);
+        // flags first: conf() needs lang_sel() for the client documentSelector
+        for (let name of all_langs) { mark_lang(name) }
         i_c_fn_head_opts.been_set = true;
         i_c_fn_head_opts.path_to_conf = uri[0].fsPath;
         await conf(context);
+        // providers only after conf(), so the first provideDocumentSymbols
+        // already has a client instead of logging "no lsp client"
+        await reg_sym_providers(context);
         //await custom_lsp(context);
         
         //vscode.window.showInformationMessage(msg);
@@ -43,37 +43,23 @@ function run_opt(key: string): RegExp {
 export function msg_opt(key: string): RegExp {
     return new RegExp(`^[ \t]*\/\/[ \t]*msg\.${key}[ \t]*\/\/[ \t\r]*$`, "m");
 }
-function set_lang(name: string, context?: vscode.ExtensionContext) {
-    //vscode.window.showInformationMessage(txt._0);
-    if (run_opt(name).test(txt._0) && name == "D") {
-        i_c_fn_head_opts.provide_lang_D = true;
-        context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'd' }, new ShowDocumentSymbols())
-        );
-    }
-    if (run_opt(name).test(txt._0) && name == "Java") {
-        i_c_fn_head_opts.provide_lang_Java = true;
-        context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'java' }, new ShowDocumentSymbols())
-        );
-    }
-    if (run_opt(name).test(txt._0) && name == "CPP") {
-        i_c_fn_head_opts.provide_lang_CPP = true;
-        context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'cpp' }, new ShowDocumentSymbols())
-        );
-    }
-    if (run_opt(name).test(txt._0) && name == "C") {
-        i_c_fn_head_opts.provide_lang_C = true;
-        context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'c' }, new ShowDocumentSymbols())
-        );
-    }
-    if (run_opt(name).test(txt._0) && name == "Rust") {
-        i_c_fn_head_opts.provide_lang_Rust = true;
-        context?.subscriptions.push(
-            vscode.languages.registerDocumentSymbolProvider({ language: 'rust' }, new ShowDocumentSymbols())
-        );
+const all_langs: string[] = ["D", "Rust", "C", "CPP", "Java"];
+function mark_lang(name: string): void {
+    if (run_opt(name).test(txt._0)) { enable_lang(name) }
+}
+async function reg_sym_providers(context: vscode.ExtensionContext): Promise<void> {
+    for (let name of all_langs) {
+        if (!flag_of_lang(name)) {
+            await prnt("set_lang: " + name + " not in opts", rank_msg.dbg);
+            continue
+        }
+        // every id the document may carry, see lang_ids in faav.ts
+        for (let id of ids_of_lang(name)) {
+            context.subscriptions.push(
+                vscode.languages.registerDocumentSymbolProvider({ language: id }, new ShowDocumentSymbols())
+            );
+        }
+        await prnt("set_lang: " + name + " registered for " + JSON.stringify(ids_of_lang(name)), rank_msg.dbg);
     }
 }
 class txt {
@@ -81,9 +67,10 @@ class txt {
 }
 export function regDefProvider(context: & vscode.ExtensionContext) {
      const selector: vscode.DocumentSelector = doc_sel();
-      context.subscriptions.push(
-        vscode.languages.registerDefinitionProvider(selector, new langDefinitionProvider())
-      );
+     context.subscriptions.push(
+       vscode.languages.registerDefinitionProvider(selector, new langDefinitionProvider())
+     );
+     prnt("regDefProvider: selector " + JSON.stringify(selector), rank_msg.dbg);
 }
 export async function run_tsts7(): Promise <void> {
     try {

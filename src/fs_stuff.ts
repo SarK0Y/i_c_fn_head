@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs"
+import * as os from "os"
 import { rank_msg, jHome as _JavaHome, kwFile as _kwFile } from "./faav";
 import { cmd_rgx, prnt} from "./basic_funx";
 import { promisify } from "util";
@@ -184,12 +185,70 @@ export async function include_dir(dir: string): Promise <vscode.Uri[]> {
     prnt("include_dir: " + "ret len: " + ret.length, rank_msg.dbg);
     return ret;
 }
+const opts_name: string = "i_c_fn_head.opts";
+// nothing here is ever named i_c_fn_head.opts, and walking node_modules for it
+// costs seconds, so skip the usual noise dirs even when the caller's exclude
+// says "none"
+const opts_exclude: string = "**/{node_modules,.git,.vscode-test,out,dist,target,build}/**";
+/**
+ * every subdir of ~/<dir> whose name matches, so a new go* project is picked up
+ * without touching this file
+ */
+function dirs_matching(dir: string, name_rx: RegExp): string[] {
+    let base = path.join(os.homedir(), dir);
+    let ret: string[] = [];
+    try {
+        for (let e of fs.readdirSync(base, { withFileTypes: true })) {
+            if (e.isDirectory() && name_rx.test(e.name)) { ret.push(path.join(base, e.name)) }
+        }
+    } catch (err) {
+        // console.error rather than prnt, see uri_to_file_of_opts below
+        console.error("i_c_fn_head dirs_matching " + base + ": " + String(err));
+    }
+    return ret;
+}
+/**
+ * Where to look for the opts file, in priority order: the opened workspace
+ * folders first, then the cwd the editor was started from, then the dirs the
+ * extension sources and the jar live in.
+ */
+export function roots_of_opts(): string[] {
+    let roots: string[] = [];
+    for (let wf of vscode.workspace.workspaceFolders ?? []) {
+        if (wf.uri.scheme == "file") { roots.push(wf.uri.fsPath) }
+    }
+    roots.push(process.cwd());
+    roots.push(path.join(os.homedir(), "VSCode_exts"));
+    roots.push(...dirs_matching("Java", /^go/i));
+    return [...new Set(roots)];
+}
+async function opts_of_root(root: string): Promise<vscode.Uri[]> {
+    try {
+        return await vscode.workspace.findFiles(
+            new vscode.RelativePattern(vscode.Uri.file(root), '**/' + opts_name),
+            opts_exclude,
+            50 /* a sane cap, not just the first hit */
+        );
+    } catch (err) {
+        // console.error rather than prnt, see uri_to_file_of_opts below
+        console.error("i_c_fn_head opts_of_root " + root + ": " + String(err));
+        return [];
+    }
+}
 export async function uri_to_file_of_opts(): Promise <vscode.Uri[]> {
-    return vscode.workspace.findFiles(
-        '**/i_c_fn_head.opts',
-        "", /* exclude none path */
-        1 /* only one result */
-    );
+    let ret: vscode.Uri[] = [];
+    for (let root of roots_of_opts()) {
+        // shallowest first, so the root level opts file stays the one that wins
+        let found = (await opts_of_root(root)).sort(
+            (a, b) => a.fsPath.split(path.sep).length - b.fsPath.split(path.sep).length
+        );
+        for (let uri of found) {
+            if (!ret.some(u => u.fsPath == uri.fsPath)) { ret.push(uri) }
+        }
+    }
+    // no prnt() in here: prnt -> msg_mode -> uri_to_file_of_opts -> prnt is an
+    // endless loop, and this fn is what msg_mode calls to find the opts
+    return ret;
 }
 /*
 import { readdir } from "fs";

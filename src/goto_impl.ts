@@ -10,6 +10,8 @@ export class langDefinitionProvider implements vscode.DefinitionProvider {
     token: vscode.CancellationToken
   ): Promise<vscode.Location[]> {
     try {
+      await prnt("provideDefinition: entered lang=" + document.languageId + " scheme=" + document.uri.scheme
+        + " " + document.uri.fsPath + ":" + (position.line + 1), rank_msg.dbg);
       return await definitions(document, position, token);
     } catch (err) {
       await prnt("provideDefinition: " + String(err), rank_msg.err);
